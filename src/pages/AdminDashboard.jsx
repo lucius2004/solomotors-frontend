@@ -59,23 +59,6 @@ function ActivityIcon({ type }) {
   )
 }
 
-// ── Password strength helper ──────────────────────────────────
-function getPasswordStrength(val) {
-  if (!val) return null
-  let score = 0
-  if (val.length >= 6) score++
-  if (/[A-Z]/.test(val)) score++
-  if (/[0-9]/.test(val)) score++
-  if (/[^A-Za-z0-9]/.test(val)) score++
-  const levels = [
-    { label: 'Lemah',       barClass: 'filled-weak' },
-    { label: 'Cukup',       barClass: 'filled-fair' },
-    { label: 'Kuat',        barClass: 'filled-good' },
-    { label: 'Sangat Kuat', barClass: 'filled-strong' },
-  ]
-  return { score, ...levels[score - 1] }
-}
-
 // ── Modal Tambah/Edit User ────────────────────────────────────
 function UserModal({ mode, user, onClose, onSave, loading }) {
   const [form, setForm] = useState(
@@ -90,11 +73,6 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
     setError('')
   }
 
-  function handleRolePill(value) {
-    setForm(f => ({ ...f, role: value }))
-    setError('')
-  }
-
   function handleSave() {
     if (!form.name.trim()) { setError('Nama wajib diisi'); return }
     if (!form.username.trim() && mode === 'add') { setError('Username wajib diisi'); return }
@@ -105,28 +83,11 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
     onSave(form)
   }
 
-  const pwStrength = getPasswordStrength(form.password)
-
   return (
     <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="modal">
-
-        {/* ── Header dengan icon ── */}
         <div className="modal-header">
-          <div className="modal-header-icon">
-            {mode === 'edit' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/>
-              </svg>
-            )}
-          </div>
-          <div className="modal-header-text">
+          <div>
             <div className="modal-title">{mode === 'edit' ? 'Edit Pengguna' : 'Tambah Pengguna Baru'}</div>
             <div className="modal-sub">{mode === 'edit' ? 'Perbarui data pengguna' : 'Isi data pengguna dan tetapkan role'}</div>
           </div>
@@ -137,105 +98,40 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
           </button>
         </div>
 
-        {/* ── Body ── */}
-        <div className="modal-body">
-
-          {/* Nama + Username */}
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Nama Lengkap <span className="form-required">*</span></label>
-              <div className="input-wrap">
-                <span className="input-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </span>
-                <input name="name" className="form-input has-icon" placeholder="Masukkan nama" value={form.name} onChange={handleChange} />
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Username <span className="form-required">*</span></label>
-              <div className="input-wrap">
-                <span className="input-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>
-                  </svg>
-                </span>
-                <input name="username" className="form-input has-icon" placeholder="nama.pengguna" value={form.username} onChange={handleChange} disabled={mode === 'edit'} />
-              </div>
-            </div>
-          </div>
-
-          {/* Email */}
+        <div className="form-row">
           <div className="form-group">
-            <label className="form-label">Email <span className="form-required">*</span></label>
-            <div className="input-wrap">
-              <span className="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
-              </span>
-              <input name="email" type="email" className="form-input has-icon" placeholder="email@solomotors.id" value={form.email} onChange={handleChange} />
-            </div>
+            <label className="form-label">Nama Lengkap</label>
+            <input name="name" className="form-input" placeholder="Masukkan nama" value={form.name} onChange={handleChange} />
           </div>
-
-          {/* Role pills */}
           <div className="form-group">
-            <label className="form-label">Role <span className="form-required">*</span></label>
-            <div className="role-pills">
-              {[
-                { value: 'Kasir', icon: <><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></> },
-                { value: 'Warehouse', icon: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></> },
-              ].map(({ value, icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`role-pill${form.role === value ? ' selected' : ''}`}
-                  onClick={() => handleRolePill(value)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {icon}
-                  </svg>
-                  {value}
-                </button>
-              ))}
-            </div>
+            <label className="form-label">Username</label>
+            <input name="username" className="form-input" placeholder="username" value={form.username} onChange={handleChange} disabled={mode === 'edit'} />
           </div>
-
-          {/* Password */}
-          <div className="form-group">
-            <label className="form-label">
-              Password{' '}
-              {mode === 'edit'
-                ? <span className="form-label-hint">(kosongkan jika tidak diubah)</span>
-                : <span className="form-required">*</span>
-              }
-            </label>
-            <div className="input-wrap">
-              <span className="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </span>
-              <input name="password" type="password" className="form-input has-icon" placeholder="Min. 6 karakter" value={form.password} onChange={handleChange} />
-            </div>
-            {pwStrength && (
-              <div className="pw-strength">
-                <div className="pw-bars">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className={`pw-bar${i <= pwStrength.score ? ` ${pwStrength.barClass}` : ''}`} />
-                  ))}
-                </div>
-                <div className="pw-label">{pwStrength.label}</div>
-              </div>
-            )}
-          </div>
-
-          {error && <div className="form-error">{error}</div>}
         </div>
 
-        {/* ── Footer ── */}
+        <div className="form-group">
+          <label className="form-label">Email</label>
+          <input name="email" type="email" className="form-input" placeholder="email@solomotors.id" value={form.email} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Role</label>
+          <select name="role" className="form-select" value={form.role} onChange={handleChange}>
+            <option value="">Pilih Role</option>
+            <option value="Kasir">Kasir</option>
+            <option value="Warehouse">Warehouse Staff</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">
+            Password {mode === 'edit' && <span style={{ fontWeight: 400, color: 'var(--text-light)' }}>(kosongkan jika tidak diubah)</span>}
+          </label>
+          <input name="password" type="password" className="form-input" placeholder="Min. 6 karakter" value={form.password} onChange={handleChange} />
+        </div>
+
+        {error && <div className="form-error">{error}</div>}
+
         <div className="modal-footer">
           <button className="btn btn-ghost" onClick={onClose} disabled={loading}>Batal</button>
           <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
@@ -244,7 +140,7 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-                {mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Pengguna'}
+                Simpan Pengguna
               </>
             )}
           </button>
