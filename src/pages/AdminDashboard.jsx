@@ -519,8 +519,11 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div className="panel">
               <div className="panel-header">
+                <div>
                   <div className="panel-title">Log Aktivitas</div>
                   <div className="panel-subtitle">Aktivitas terbaru pengguna</div>
+                </div>
+                <button className="btn btn-ghost" style={{ fontSize: '12px' }} onClick={fetchLogs}>Refresh</button>
               </div>
                 <div className="activity-list">
                   {activities.length === 0 ? (
