@@ -188,13 +188,13 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   animation: fadeUp 0.55s 0.25s ease both;
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 .panel-header {
-  padding: 18px 24px;
+  padding: 14px 24px;
   border-bottom: 1px solid var(--border-soft);
   display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
+  flex-wrap: wrap; gap: 8px;
 }
 .panel-header.centered {
   flex-direction: column;
@@ -222,10 +222,17 @@ thead th {
 tbody tr {
   border-bottom: 1px solid var(--border-soft);
   transition: background 0.15s;
+  height: 60px;
 }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--orange-xlight); }
-tbody td { padding: 13px 16px; font-size: 0.82rem; color: var(--text); vertical-align: middle; line-height: 1; }
+tbody td {
+  padding: 0 16px;
+  font-size: 0.82rem;
+  color: var(--text);
+  vertical-align: middle;
+  height: 60px;
+}
 
 .user-cell { display: flex; align-items: center; gap: 10px; }
 .user-avatar {
@@ -391,7 +398,7 @@ tbody td { padding: 13px 16px; font-size: 0.82rem; color: var(--text); vertical-
 
 /* ── PAGINATION ── */
 .pagination {
-  padding: 14px 20px;
+  padding: 10px 20px;
   border-top: 1px solid var(--border-soft);
   display: flex; align-items: center; justify-content: space-between;
   font-size: 0.76rem; color: var(--text-muted);
