@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap');
+
+/* ── Reset scoped hanya ke halaman warehouse ── */
+.lw-wrapper *,
+.lw-wrapper *::before,
+.lw-wrapper *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Variabel ── */
+.lw-wrapper {
+  --lw-green:         #16A34A;
+  --lw-green-dark:    #15803D;
+  --lw-green-xlight:  #F0FDF4;
+  --lw-orange:        #F97316;
+  --lw-white:         #FFFFFF;
+  --lw-off-white:     #F7FDF9;
+  --lw-text:          #1C1412;
+  --lw-text-muted:    #78716C;
+  --lw-text-light:    #A8A29E;
+  --lw-border:        rgba(22,163,74,0.15);
+  --lw-red:           #DC2626;
+  --lw-red-light:     #FEE2E2;
+}
+
+/* ── WRAPPER ── */
+.lw-wrapper {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--lw-off-white);
+  color: var(--lw-text);
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── BG SHAPES ── */
+.lw-bg-shape {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 50%;
+}
+.lw-bg-shape-1 {
+  top: -100px; right: -80px;
+  width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(22,163,74,0.10) 0%, transparent 70%);
+}
+.lw-bg-shape-2 {
+  bottom: -60px; left: -60px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(22,163,74,0.07) 0%, transparent 70%);
+}
+
+/* ── NAVBAR ── */
+.lw-nav {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 44px;
+  height: 62px;
+  background: rgba(255,255,255,0.90);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(22,163,74,0.12);
+}
+.lw-nav-brand {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.98rem; font-weight: 700;
+  color: var(--lw-text); letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 9px;
+}
+.lw-nav-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--lw-orange);
+  flex-shrink: 0;
+}
+.lw-nav-back {
+  font-size: 0.80rem; font-weight: 500;
+  color: var(--lw-text-muted); cursor: pointer;
+  padding: 7px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(22,163,74,0.20);
+  background: var(--lw-white);
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+  text-decoration: none;
+}
+.lw-nav-back svg { width: 13px; height: 13px; }
+.lw-nav-back:hover {
+  background: var(--lw-green-xlight);
+  color: var(--lw-green-dark);
+  border-color: var(--lw-green);
+}
+
+/* ── MAIN ── */
+.lw-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── LOGIN WRAP ── */
+.lw-login-wrap {
+  width: 100%;
+  max-width: 420px;
+  animation: lwFadeUp 0.55s ease both;
+  text-align: center;
+}
+
+/* ── HEADING ── */
+.lw-heading {
+  font-family: 'Sora', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--lw-text);
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+  margin-bottom: 24px;
+}
+.lw-heading span { color: var(--lw-green); }
+
+/* ── CARD ── */
+.lw-card {
+  background: var(--lw-white);
+  border: 1px solid var(--lw-border);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 2px 16px rgba(22,163,74,0.09);
+  text-align: left;
+}
+
+/* ── FIELD ── */
+.lw-field { margin-bottom: 18px; }
+
+.lw-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--lw-text-muted);
+  display: block;
+  margin-bottom: 7px;
+}
+
+/* ── INPUT ── */
+.lw-input-wrap { position: relative; }
+
+.lw-input-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--lw-text-light);
+  pointer-events: none;
+}
+.lw-input-icon svg { width: 16px; height: 16px; display: block; }
+
+.lw-input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  border: 1px solid rgba(22,163,74,0.18);
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: var(--lw-text);
+  background: var(--lw-off-white);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.lw-input:focus {
+  border-color: var(--lw-green);
+  background: var(--lw-white);
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.10);
+}
+.lw-input::placeholder { color: var(--lw-text-light); }
+
+.lw-toggle-pass {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--lw-text-light);
+  display: flex; align-items: center;
+  transition: color 0.2s;
+}
+.lw-toggle-pass:hover { color: var(--lw-green); }
+.lw-toggle-pass svg { width: 16px; height: 16px; display: block; }
+
+/* ── ERROR ── */
+.lw-error {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--lw-red-light);
+  color: var(--lw-red);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.80rem; font-weight: 500;
+  margin-bottom: 18px;
+}
+.lw-error svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* ── BUTTON ── */
+.lw-btn-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  margin-top: 4px;
+  background: var(--lw-green);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Sora', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.01em;
+  box-shadow: 0 4px 18px rgba(22,163,74,0.35);
+  transition: all 0.2s;
+}
+.lw-btn-login svg { width: 16px; height: 16px; }
+.lw-btn-login:hover {
+  background: var(--lw-green-dark);
+  box-shadow: 0 6px 24px rgba(22,163,74,0.45);
+  transform: translateY(-1px);
+}
+.lw-btn-login:active { transform: translateY(0); }
+
+/* ── FOOTER ── */
+.lw-footer {
+  border-top: 1px solid rgba(22,163,74,0.10);
+  padding: 16px 44px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 10px;
+  font-size: 0.76rem;
+  color: var(--lw-text-light);
+  background: rgba(255,255,255,0.70);
+  position: relative; z-index: 1;
+}
+.lw-footer-brand { font-weight: 700; color: var(--lw-orange); }
+
+/* ── ANIMATION ── */
+@keyframes lwFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
