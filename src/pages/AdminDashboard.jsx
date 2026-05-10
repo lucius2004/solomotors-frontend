@@ -584,6 +584,14 @@ export default function AdminDashboard() {
 
             {/* USER TABLE */}
             <div className="panel">
+              <div className="panel-header">
+                <div>
+                  <div className="panel-title">Daftar Pengguna</div>
+                  <div className="panel-subtitle">Pengguna terdaftar dalam sistem</div>
+                </div>
+                <span className="count-badge">{filteredUsers.length} pengguna</span>
+              </div>
+
               {/* Toolbar */}
               <div className="tbl-toolbar">
                 <div className="tbl-toolbar-left">
@@ -610,14 +618,6 @@ export default function AdminDashboard() {
                     ))}
                   </div>
                 </div>
-              </div>
-
-              <div className="panel-header">
-                <div>
-                  <div className="panel-title">Daftar Pengguna</div>
-                  <div className="panel-subtitle">Pengguna terdaftar dalam sistem</div>
-                </div>
-                <span className="count-badge">{filteredUsers.length} pengguna</span>
               </div>
 
               {loadingData ? (
