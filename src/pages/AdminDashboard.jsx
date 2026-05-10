@@ -321,47 +321,6 @@ export default function AdminDashboard() {
   const [savingUser, setSavingUser]   = useState(false)
   const [errorData, setErrorData]     = useState('')
 
-  // ── Search / Filter / Sort / Pagination ──
-  const [search, setSearch]             = useState('')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [sortKey, setSortKey]           = useState('')
-  const [sortDir, setSortDir]           = useState(1)
-  const [page, setPage]                 = useState(1)
-  const PAGE_SIZE = 10
-
-  const filteredUsers = (() => {
-    let data = users.filter(u => {
-      const q = search.toLowerCase()
-      const matchSearch = !q ||
-        (u.name     || '').toLowerCase().includes(q) ||
-        (u.email    || '').toLowerCase().includes(q) ||
-        (u.username || '').toLowerCase().includes(q)
-      const matchStatus =
-        filterStatus === 'aktif'    ? u.is_active === 1 :
-        filterStatus === 'nonaktif' ? u.is_active === 0 : true
-      return matchSearch && matchStatus
-    })
-    if (sortKey) {
-      data = [...data].sort((a, b) => {
-        const va = a[sortKey] || ''
-        const vb = b[sortKey] || ''
-        return va < vb ? -sortDir : va > vb ? sortDir : 0
-      })
-    }
-    return data
-  })()
-
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE))
-  const pagedUsers = filteredUsers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-
-  function handleSort(key) {
-    if (sortKey === key) setSortDir(d => d * -1)
-    else { setSortKey(key); setSortDir(1) }
-    setPage(1)
-  }
-  function handleFilterStatus(val) { setFilterStatus(val); setPage(1) }
-  function handleSearch(val)       { setSearch(val);       setPage(1) }
-
   const token     = sessionStorage.getItem('token')
   const adminUser = JSON.parse(sessionStorage.getItem('user') || '{}')
 
@@ -589,139 +548,75 @@ export default function AdminDashboard() {
                   <div className="panel-title">Daftar Pengguna</div>
                   <div className="panel-subtitle">Pengguna terdaftar dalam sistem</div>
                 </div>
-                <span className="count-badge">{filteredUsers.length} pengguna</span>
-              </div>
-
-              {/* Toolbar */}
-              <div className="tbl-toolbar">
-                <div className="tbl-toolbar-left">
-                  <div className="search-wrap">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                    <input
-                      className="search-input"
-                      placeholder="Cari nama atau email..."
-                      value={search}
-                      onChange={e => handleSearch(e.target.value)}
-                    />
-                  </div>
-                  <div className="filter-group">
-                    {['all','aktif','nonaktif'].map(f => (
-                      <button
-                        key={f}
-                        className={`filter-btn${filterStatus === f ? ' active' : ''}`}
-                        onClick={() => handleFilterStatus(f)}
-                      >
-                        {f === 'all' ? 'Semua' : f.charAt(0).toUpperCase() + f.slice(1)}
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
 
               {loadingData ? (
-                <div className="tbl-loading">Memuat data pengguna...</div>
+                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-light)' }}>
+                  Memuat data pengguna...
+                </div>
               ) : errorData ? (
-                <div className="tbl-error">
+                <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>
                   {errorData} — <button className="btn btn-ghost" onClick={fetchUsers}>Coba lagi</button>
                 </div>
               ) : (
-                <>
-                  <div className="table-wrap">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th className="sortable" onClick={() => handleSort('name')}>
-                            Pengguna <span className={`sort-icon${sortKey === 'name' ? ' sorted' : ''}`}>{sortKey === 'name' ? (sortDir === 1 ? '↑' : '↓') : '↕'}</span>
-                          </th>
-                          <th>Role</th>
-                          <th>Status</th>
-                          <th className="sortable" onClick={() => handleSort('last_login')}>
-                            Login Terakhir <span className={`sort-icon${sortKey === 'last_login' ? ' sorted' : ''}`}>{sortKey === 'last_login' ? (sortDir === 1 ? '↑' : '↓') : '↕'}</span>
-                          </th>
-                          <th>Logout Terakhir</th>
-                          <th>Aksi</th>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Pengguna</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Login Terakhir</th>
+                        <th>Logout Terakhir</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u, i) => (
+                        <tr key={u.id}>
+                          <td>
+                            <div className="user-cell">
+                              <div className={`user-avatar ${getAvatarColor(i)}`}>{getInitials(u.name)}</div>
+                              <div>
+                                <div className="user-name">{u.name}</div>
+                                <div className="user-email">{u.email || u.username}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td><RoleBadge role={roleLabel(u.role)} /></td>
+                          <td><StatusBadge active={u.is_active === 1} /></td>
+                          <td><span className="last-login">{formatDateTime(u.last_login)}</span></td>
+                          <td><span className="last-login">{formatDateTime(u.last_logout)}</span></td>
+                          <td>
+                            <div className="action-group">
+                              <button className="icon-btn edit" title="Edit" onClick={() => setModal({ mode: 'edit', user: u })}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                </svg>
+                              </button>
+                              <button
+                                className={`icon-btn ${u.is_active ? 'toggle-inactive' : 'toggle-active'}`}
+                                title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                                onClick={() => handleToggleStatus(u)}
+                              >
+                                {u.is_active
+                                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                                  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                }
+                              </button>
+                            </div>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody>
-                        {pagedUsers.map((u, i) => (
-                          <tr key={u.id} className={u.is_active === 0 ? 'inactive' : ''}>
-                            <td>
-                              <div className="user-cell">
-                                <div className={`user-avatar ${getAvatarColor(i)}`}>{getInitials(u.name)}</div>
-                                <div>
-                                  <div className="user-name">{u.name}</div>
-                                  <div className="user-email">{u.email || u.username}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td><RoleBadge role={roleLabel(u.role)} /></td>
-                            <td><StatusBadge active={u.is_active === 1} /></td>
-                            <td>
-                              <span className={`last-login${!u.last_login ? ' never' : ''}`}>
-                                {u.last_login ? formatDateTime(u.last_login) : 'Belum pernah login'}
-                              </span>
-                            </td>
-                            <td>
-                              <span className={`last-login${!u.last_logout ? ' never' : ''}`}>
-                                {u.last_logout ? formatDateTime(u.last_logout) : '—'}
-                              </span>
-                            </td>
-                            <td>
-                              <div className="action-group">
-                                <button className="icon-btn edit" title="Edit" onClick={() => setModal({ mode: 'edit', user: u })}>
-                                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                  </svg>
-                                </button>
-                                <button
-                                  className={`icon-btn ${u.is_active ? 'toggle-inactive' : 'toggle-active'}`}
-                                  title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                                  onClick={() => handleToggleStatus(u)}
-                                >
-                                  {u.is_active
-                                    ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                    : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                  }
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {filteredUsers.length === 0 && (
-                    <div className="empty-state">
-                      <div className="empty-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                          <circle cx="9" cy="7" r="4"/>
-                          <line x1="23" y1="11" x2="17" y2="11"/>
-                        </svg>
-                      </div>
-                      <div className="empty-title">Tidak ada pengguna ditemukan</div>
-                      <div className="empty-desc">Coba ubah kata kunci pencarian atau filter.</div>
-                    </div>
-                  )}
-
-                  <div className="pagination">
-                    <span>Menampilkan {filteredUsers.length} dari {users.length} pengguna</span>
-                    <div className="page-btns">
-                      {Array.from({ length: totalPages }, (_, i) => (
-                        <button
-                          key={i}
-                          className={`page-btn${page === i + 1 ? ' active' : ''}`}
-                          onClick={() => setPage(i + 1)}
-                        >{i + 1}</button>
                       ))}
-                    </div>
-                  </div>
-                </>
+                    </tbody>
+                  </table>
+                </div>
               )}
+
+              <div className="pagination">
+                <span>Menampilkan {users.length} pengguna</span>
+              </div>
             </div>
 
             {/* ACTIVITY LOG */}
