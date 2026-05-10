@@ -516,14 +516,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* ACTIVITY LOG */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="panel">
-              <div className="panel-header centered">
+            <div className="panel">
+              <div className="panel-header">
+                <div>
                   <div className="panel-title">Log Aktivitas</div>
-                  <div className="panel-subtitle">Riwayat login pengguna dari database</div>
-                  <button className="btn btn-ghost" style={{ fontSize: '12px' }} onClick={fetchLogs}>
-                    Refresh
-                  </button>
+                  <div className="panel-subtitle">Aktivitas terbaru pengguna</div>
+                </div>
+                <button className="btn btn-ghost" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={fetchLogs}>Refresh</button>
               </div>
                 <div className="activity-list">
                   {activities.length === 0 ? (
@@ -544,7 +543,6 @@ export default function AdminDashboard() {
                     </div>
                   ))}
                 </div>
-              </div>
             </div>
 
           </div>
