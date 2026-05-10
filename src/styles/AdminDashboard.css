@@ -450,3 +450,28 @@ tbody td {
 @media (max-width: 1100px) {
   .two-col { grid-template-columns: 1fr; }
 }
+/* ── FIX: Activity text nowrap ── */
+.activity-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border-soft);
+  transition: background 0.15s;
+  min-width: 0;
+}
+.activity-content { flex: 1; min-width: 0; }
+.activity-text {
+  font-size: 0.80rem;
+  color: var(--text);
+  line-height: 1.45;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.activity-text strong { font-weight: 600; }
+.activity-time { font-size: 0.70rem; color: var(--text-light); margin-top: 3px; }
+
+/* ── FIX: Topbar left spacing ── */
+.topbar-left { display: flex; flex-direction: column; justify-content: center; gap: 1px; }
+.topbar-left h1 { margin: 0; line-height: 1.2; }
+.topbar-left p  { margin: 0; line-height: 1.2; }
