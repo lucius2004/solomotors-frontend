@@ -407,8 +407,8 @@ tbody td { padding: 13px 16px; font-size: 0.82rem; color: var(--text); vertical-
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   font-family: 'DM Sans', sans-serif;
   box-sizing: border-box;
-  -webkit-appearance: none;
 }
+
 .form-input.has-icon { padding-left: 34px; }
 .form-input::placeholder { color: var(--text-light); }
 .form-input:focus,
