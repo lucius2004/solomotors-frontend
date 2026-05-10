@@ -5,23 +5,18 @@ import '../styles/AdminDashboard.css'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const AVATAR_COLORS = ['ua-orange', 'ua-blue', 'ua-green', 'ua-deep']
 
-// ── Helpers ──────────────────────────────────────────────────
 function getInitials(name = '') {
   return name.trim().split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()
 }
-function getAvatarColor(index) {
-  return AVATAR_COLORS[index % AVATAR_COLORS.length]
-}
+function getAvatarColor(i) { return AVATAR_COLORS[i % AVATAR_COLORS.length] }
 function formatDateTime(val) {
   if (!val) return 'Belum pernah'
-  const d = new Date(val)
-  return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
+  return new Date(val).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
 }
 function roleLabel(role) {
   return { admin: 'Admin', kasir: 'Kasir', warehouse: 'Warehouse' }[role] || role
 }
 
-// ── Sub-komponen ──────────────────────────────────────────────
 function RoleBadge({ role }) {
   const map = { Admin: 'badge-owner', Warehouse: 'badge-warehouse', Kasir: 'badge-kasir' }
   return (
@@ -42,7 +37,7 @@ function StatusBadge({ active }) {
 }
 
 function ActivityIcon({ type }) {
-  const map = { login: 'ai-login', create: 'ai-create', edit: 'ai-edit', disable: 'ai-disable', failed: 'ai-delete' }
+  const cls = { login: 'ai-login', create: 'ai-create', edit: 'ai-edit', disable: 'ai-disable', failed: 'ai-delete' }
   const icons = {
     login:   <><polyline points="15 3 21 3 21 9"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></>,
     create:  <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
@@ -51,7 +46,7 @@ function ActivityIcon({ type }) {
     failed:  <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
   }
   return (
-    <div className={`activity-icon ${map[type] || 'ai-login'}`}>
+    <div className={`activity-icon ${cls[type] || 'ai-login'}`}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         {icons[type] || icons.login}
       </svg>
@@ -59,7 +54,6 @@ function ActivityIcon({ type }) {
   )
 }
 
-// ── Modal Tambah/Edit User ────────────────────────────────────
 function UserModal({ mode, user, onClose, onSave, loading }) {
   const [form, setForm] = useState(
     mode === 'edit' && user
@@ -68,18 +62,13 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
   )
   const [error, setError] = useState('')
 
-  function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    setError('')
-  }
+  function handleChange(e) { setForm(f => ({ ...f, [e.target.name]: e.target.value })); setError('') }
 
   function handleSave() {
-    if (!form.name.trim()) { setError('Nama wajib diisi'); return }
-    if (!form.username.trim() && mode === 'add') { setError('Username wajib diisi'); return }
-    if (!form.role) { setError('Role wajib dipilih'); return }
-    if (mode === 'add' && (!form.password || form.password.length < 6)) {
-      setError('Password minimal 6 karakter'); return
-    }
+    if (!form.name.trim())                                        { setError('Nama wajib diisi'); return }
+    if (!form.username.trim() && mode === 'add')                  { setError('Username wajib diisi'); return }
+    if (!form.role)                                               { setError('Role wajib dipilih'); return }
+    if (mode === 'add' && (!form.password || form.password.length < 6)) { setError('Password minimal 6 karakter'); return }
     onSave(form)
   }
 
@@ -150,7 +139,6 @@ function UserModal({ mode, user, onClose, onSave, loading }) {
   )
 }
 
-// ── Confirm Dialog ────────────────────────────────────────────
 function ConfirmDialog({ message, onConfirm, onCancel }) {
   return (
     <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onCancel()}>
@@ -175,14 +163,13 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
   )
 }
 
-// ── Toast ─────────────────────────────────────────────────────
 function Toast({ message, type }) {
   return (
     <div className={`toast toast-${type}`}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
         {type === 'success'
           ? <polyline points="20 6 9 17 4 12"/>
-          : <><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></>
+          : <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>
         }
       </svg>
       {message}
@@ -203,16 +190,15 @@ function NavItem({ active, onClick, icon, label }) {
   )
 }
 
-// ── MAIN COMPONENT ────────────────────────────────────────────
 export default function AdminDashboard() {
   const navigate = useNavigate()
 
-  const [users, setUsers]           = useState([])
-  const [activities, setActivities] = useState([])
-  const [modal, setModal]           = useState(null)
-  const [confirm, setConfirm]       = useState(null)
-  const [toast, setToast]           = useState(null)
-  const [activeNav, setActiveNav]   = useState('users')
+  const [users, setUsers]             = useState([])
+  const [activities, setActivities]   = useState([])
+  const [modal, setModal]             = useState(null)
+  const [confirm, setConfirm]         = useState(null)
+  const [toast, setToast]             = useState(null)
+  const [activeNav, setActiveNav]     = useState('users')
   const [loadingData, setLoadingData] = useState(true)
   const [savingUser, setSavingUser]   = useState(false)
   const [errorData, setErrorData]     = useState('')
@@ -220,148 +206,107 @@ export default function AdminDashboard() {
   const token     = sessionStorage.getItem('token')
   const adminUser = JSON.parse(sessionStorage.getItem('user') || '{}')
 
-  useEffect(() => {
-    if (!token) navigate('/login/admin')
-  }, [token, navigate])
+  useEffect(() => { if (!token) navigate('/login/admin') }, [token, navigate])
 
   const authHeaders = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`
   }
 
-  // ── Fetch users ──
   const fetchUsers = useCallback(async () => {
-    setLoadingData(true)
-    setErrorData('')
+    setLoadingData(true); setErrorData('')
     try {
       const res  = await fetch(`${API_URL}/users`, { headers: authHeaders })
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Gagal mengambil data')
       setUsers(data.data)
-    } catch (err) {
-      setErrorData(err.message)
-    } finally {
-      setLoadingData(false)
-    }
+    } catch (err) { setErrorData(err.message) }
+    finally { setLoadingData(false) }
   }, [token])
 
-  // ── Fetch log aktivitas dari database ──
   const fetchLogs = useCallback(async () => {
     try {
       const res  = await fetch(`${API_URL}/auth/logs`, { headers: authHeaders })
       const data = await res.json()
       if (!res.ok) return
-      // Konversi data log ke format aktivitas
-      const mapped = data.data.map(log => ({
+      setActivities(data.data.map(log => ({
         id:   log.id,
         type: log.status === 'failed' ? 'failed' : 'login',
         text: [
           { bold: true,  val: log.nama_lengkap || log.username },
           { bold: false, val: log.status === 'failed'
-            ? ` gagal login sebagai ${roleLabel(log.role)}`
-            : ` login sebagai ${roleLabel(log.role)}` },
+              ? ` gagal login sebagai ${roleLabel(log.role)}`
+              : ` login sebagai ${roleLabel(log.role)}` },
         ],
         time: formatDateTime(log.created_at),
-      }))
-      setActivities(mapped)
+      })))
     } catch (_) {}
   }, [token])
 
-  useEffect(() => {
-    fetchUsers()
-    fetchLogs()
-  }, [fetchUsers, fetchLogs])
+  useEffect(() => { fetchUsers(); fetchLogs() }, [fetchUsers, fetchLogs])
 
   function showToast(message, type = 'success') {
     setToast({ message, type })
     setTimeout(() => setToast(null), 2800)
   }
 
-  // ── Save user ──
   async function handleSaveUser(form) {
     setSavingUser(true)
     try {
       const isAdd  = modal.mode === 'add'
       const url    = isAdd ? `${API_URL}/users` : `${API_URL}/users/${modal.user.id}`
       const method = isAdd ? 'POST' : 'PUT'
-
-      const res  = await fetch(url, {
-        method,
-        headers: authHeaders,
+      const res    = await fetch(url, {
+        method, headers: authHeaders,
         body: JSON.stringify({
-          name:     form.name,
-          username: form.username,
-          email:    form.email,
-          role:     form.role === 'Warehouse Staff' ? 'Warehouse' : form.role,
+          name: form.name, username: form.username, email: form.email,
+          role: form.role === 'Warehouse Staff' ? 'Warehouse' : form.role,
           password: form.password,
         })
       })
       const data = await res.json()
-
-      if (!res.ok) {
-        showToast(data.message || 'Gagal menyimpan data.', 'error')
-        return
-      }
-
+      if (!res.ok) { showToast(data.message || 'Gagal menyimpan.', 'error'); return }
       setModal(null)
       await fetchUsers()
       await fetchLogs()
       showToast(data.message)
-
-    } catch {
-      showToast('Tidak dapat terhubung ke server.', 'error')
-    } finally {
-      setSavingUser(false)
-    }
+    } catch { showToast('Tidak dapat terhubung ke server.', 'error') }
+    finally { setSavingUser(false) }
   }
 
-  // ── Toggle status ──
   function handleToggleStatus(user) {
     const willActivate = user.is_active === 0
-    const action = willActivate ? 'aktifkan' : 'nonaktifkan'
     setConfirm({
-      message: `${action.charAt(0).toUpperCase() + action.slice(1)} akun ${user.name}?`,
+      message: `${willActivate ? 'Aktifkan' : 'Nonaktifkan'} akun ${user.name}?`,
       onConfirm: async () => {
         setConfirm(null)
         try {
           const res  = await fetch(`${API_URL}/users/${user.id}/status`, {
-            method:  'PATCH',
-            headers: authHeaders,
-            body:    JSON.stringify({ is_active: willActivate ? 1 : 0 })
+            method: 'PATCH', headers: authHeaders,
+            body: JSON.stringify({ is_active: willActivate ? 1 : 0 })
           })
           const data = await res.json()
           if (!res.ok) { showToast(data.message || 'Gagal mengubah status.', 'error'); return }
           await fetchUsers()
           showToast(data.message, willActivate ? 'success' : 'warning')
-        } catch {
-          showToast('Tidak dapat terhubung ke server.', 'error')
-        }
+        } catch { showToast('Tidak dapat terhubung ke server.', 'error') }
       }
     })
   }
 
-  // ── Logout ──
   async function handleLogout() {
-    try {
-      await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers: authHeaders })
-    } catch (_) {}
+    try { await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers: authHeaders }) } catch (_) {}
     sessionStorage.clear()
     navigate('/login/admin')
   }
 
-  // ── Export CSV ──
   function handleExport() {
     const header = ['Nama', 'Username', 'Email', 'Role', 'Status', 'Login Terakhir']
-    const rows   = users.map(u => [
-      u.name, u.username, u.email || '-',
-      roleLabel(u.role),
-      u.is_active ? 'Aktif' : 'Nonaktif',
-      formatDateTime(u.last_login)
-    ])
-    const csv  = [header, ...rows].map(r => r.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
+    const rows   = users.map(u => [u.name, u.username, u.email || '-', roleLabel(u.role), u.is_active ? 'Aktif' : 'Nonaktif', formatDateTime(u.last_login)])
+    const csv    = [header, ...rows].map(r => r.join(',')).join('\n')
+    const blob   = new Blob([csv], { type: 'text/csv' })
+    const url    = URL.createObjectURL(blob)
+    const a      = document.createElement('a')
     a.href = url; a.download = 'pengguna-solo-motors.csv'; a.click()
     URL.revokeObjectURL(url)
     showToast('Data berhasil diekspor ke CSV')
@@ -411,6 +356,8 @@ export default function AdminDashboard() {
 
       {/* MAIN */}
       <div className="main">
+
+        {/* TOPBAR */}
         <header className="topbar">
           <div className="topbar-left">
             <h1>Manajemen Pengguna</h1>
@@ -434,10 +381,11 @@ export default function AdminDashboard() {
           </div>
         </header>
 
+        {/* CONTENT */}
         <div className="content">
           <div className="two-col">
 
-            {/* USER TABLE */}
+            {/* DAFTAR PENGGUNA */}
             <div className="panel">
               <div className="panel-header">
                 <div>
@@ -515,35 +463,35 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* ACTIVITY LOG */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="panel">
+            {/* LOG AKTIVITAS */}
+            <div className="panel">
               <div className="panel-header">
                 <div>
                   <div className="panel-title">Log Aktivitas</div>
                   <div className="panel-subtitle">Aktivitas terbaru pengguna</div>
                 </div>
-                <button className="btn btn-ghost" style={{ fontSize: '12px' }} onClick={fetchLogs}>Refresh</button>
+                <button className="btn btn-ghost" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={fetchLogs}>
+                  Refresh
+                </button>
               </div>
-                <div className="activity-list">
-                  {activities.length === 0 ? (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-light)', fontSize: '14px' }}>
-                      Belum ada aktivitas login.
-                    </div>
-                  ) : activities.map(a => (
-                    <div className="activity-item" key={a.id}>
-                      <ActivityIcon type={a.type} />
-                      <div className="activity-content">
-                        <div className="activity-text">
-                          {a.text.map((seg, i) =>
-                            seg.bold ? <strong key={i}>{seg.val}</strong> : <span key={i}>{seg.val}</span>
-                          )}
-                        </div>
-                        <div className="activity-time">{a.time}</div>
+              <div className="activity-list">
+                {activities.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-light)', fontSize: '14px' }}>
+                    Belum ada aktivitas login.
+                  </div>
+                ) : activities.map(a => (
+                  <div className="activity-item" key={a.id}>
+                    <ActivityIcon type={a.type} />
+                    <div className="activity-content">
+                      <div className="activity-text">
+                        {a.text.map((seg, i) =>
+                          seg.bold ? <strong key={i}>{seg.val}</strong> : <span key={i}>{seg.val}</span>
+                        )}
                       </div>
+                      <div className="activity-time">{a.time}</div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -551,23 +499,8 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MODALS */}
-      {modal && (
-        <UserModal
-          mode={modal.mode}
-          user={modal.user}
-          onClose={() => setModal(null)}
-          onSave={handleSaveUser}
-          loading={savingUser}
-        />
-      )}
-      {confirm && (
-        <ConfirmDialog
-          message={confirm.message}
-          onConfirm={confirm.onConfirm}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
+      {modal && <UserModal mode={modal.mode} user={modal.user} onClose={() => setModal(null)} onSave={handleSaveUser} loading={savingUser} />}
+      {confirm && <ConfirmDialog message={confirm.message} onConfirm={confirm.onConfirm} onCancel={() => setConfirm(null)} />}
       {toast && <Toast message={toast.message} type={toast.type || 'success'} />}
     </div>
   )
