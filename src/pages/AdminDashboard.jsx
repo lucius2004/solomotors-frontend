@@ -549,7 +549,7 @@ export default function AdminDashboard() {
 
             {/* USER TABLE */}
             <div className="panel">
-              <div className="panel-header">
+              <div className="panel-header centered">
                 <div>
                   <div className="panel-title">Daftar Pengguna</div>
                   <div className="panel-subtitle">Pengguna terdaftar dalam sistem</div>
