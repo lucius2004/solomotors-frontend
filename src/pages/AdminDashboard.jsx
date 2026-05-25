@@ -482,14 +482,30 @@ export default function AdminDashboard() {
           </svg>
         </div>
 
+        {/* Utama */}
         <div className="sidebar-section">
           <ul className="sidebar-nav">
+            <NavItem active={false} onClick={() => {}} label="Dashboard"
+              icon={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>} />
             <NavItem active={activeNav === 'users'} onClick={() => setActiveNav('users')} label="Manajemen Pengguna"
               icon={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />
           </ul>
         </div>
 
-        <div className="sidebar-section">
+        {/* Operasional */}
+        <div className="sidebar-section" style={{ marginTop: 4 }}>
+          <ul className="sidebar-nav">
+            <NavItem active={false} onClick={() => {}} label="Inventaris"
+              icon={<><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>} />
+            <NavItem active={false} onClick={() => {}} label="Transaksi"
+              icon={<><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>} />
+            <NavItem active={false} onClick={() => {}} label="Laporan"
+              icon={<><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></>} />
+          </ul>
+        </div>
+
+        {/* Sistem */}
+        <div className="sidebar-section" style={{ marginTop: 4 }}>
           <ul className="sidebar-nav">
             <NavItem active={false} onClick={handleLogout} label="Keluar"
               icon={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>} />
