@@ -208,38 +208,38 @@
 table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 thead tr { background: var(--bg); border-bottom: 1px solid var(--border); }
 thead th {
-  padding: 7px 14px; text-align: left;
-  font-size: 0.62rem; font-weight: 600; color: var(--text-muted);
+  padding: 6px 12px; text-align: left;
+  font-size: 0.58rem; font-weight: 600; color: var(--text-muted);
   letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap;
 }
-tbody tr { border-bottom: 1px solid var(--border); height: 44px; transition: background 0.12s; }
+tbody tr { border-bottom: 1px solid var(--border); height: 38px; transition: background 0.12s; }
 tbody tr:last-child { border-bottom: none; }
 tbody tr:hover { background: var(--bg); }
-tbody td { height: 44px; padding: 0 14px; font-size: 0.75rem; color: var(--text); vertical-align: middle; box-sizing: border-box; }
+tbody td { height: 38px; padding: 0 12px; font-size: 0.71rem; color: var(--text); vertical-align: middle; box-sizing: border-box; }
 
 /* user cell */
-.user-cell { display: flex; align-items: center; gap: 8px; height: 100%; }
+.user-cell { display: flex; align-items: center; gap: 7px; height: 100%; }
 .user-avatar {
-  width: 26px; height: 26px; border-radius: 50%;
+  width: 22px; height: 22px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.58rem; font-weight: 700; color: #fff; flex-shrink: 0;
+  font-size: 0.54rem; font-weight: 700; color: #fff; flex-shrink: 0;
 }
 .ua-orange { background: #78716C; }
 .ua-blue   { background: #57534E; }
 .ua-green  { background: #44403C; }
 .ua-deep   { background: #292524; }
 
-.user-name { font-size: 0.75rem; font-weight: 500; color: var(--text); }
-.user-email { font-size: 0.63rem; color: var(--text-muted); margin-top: 1px; }
+.user-name { font-size: 0.71rem; font-weight: 500; color: var(--text); }
+.user-email { font-size: 0.60rem; color: var(--text-muted); margin-top: 0; }
 
 /* badges */
 .badge, .status-badge {
   display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 7px; border-radius: 99px;
-  font-size: 0.62rem; font-weight: 500;
+  padding: 1px 6px; border-radius: 99px;
+  font-size: 0.58rem; font-weight: 500;
   vertical-align: middle;
 }
-.badge-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.badge-dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 
 .badge-owner   { background: var(--accent-bg); color: var(--text); }
 .badge-warehouse { background: var(--blue-bg); color: var(--blue); }
@@ -251,18 +251,18 @@ tbody td { height: 44px; padding: 0 14px; font-size: 0.75rem; color: var(--text)
 /* action buttons */
 .action-group { display: flex; align-items: center; gap: 3px; }
 .icon-btn {
-  width: 24px; height: 24px; border-radius: var(--radius-sm);
+  width: 22px; height: 22px; border-radius: var(--radius-sm);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; border: 1px solid var(--border);
   background: transparent; color: var(--text-muted);
   transition: all 0.14s;
 }
-.icon-btn svg { width: 11px; height: 11px; }
+.icon-btn svg { width: 10px; height: 10px; }
 .icon-btn.edit:hover { background: var(--amber-bg); color: var(--amber); border-color: transparent; }
 .icon-btn.toggle-inactive:hover { background: var(--red-bg); color: var(--red); border-color: transparent; }
 .icon-btn.toggle-active:hover  { background: var(--green-bg); color: var(--green); border-color: transparent; }
 
-.last-login { font-size: 0.63rem; color: var(--text-muted); }
+.last-login { font-size: 0.60rem; color: var(--text-muted); }
 
 /* ── ACTIVITY LOG ── */
 .activity-list { max-height: 420px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
@@ -270,18 +270,18 @@ tbody td { height: 44px; padding: 0 14px; font-size: 0.75rem; color: var(--text)
 .activity-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 .activity-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 12px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 16px; border-bottom: 1px solid var(--border);
   transition: background 0.12s;
 }
 .activity-item:last-child { border-bottom: none; }
 .activity-item:hover { background: var(--bg); }
 
 .activity-icon {
-  width: 28px; height: 28px; border-radius: var(--radius-sm); flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: var(--radius-sm); flex-shrink: 0;
   display: flex; align-items: center; justify-content: center; margin-top: 1px;
 }
-.activity-icon svg { width: 13px; height: 13px; }
+.activity-icon svg { width: 11px; height: 11px; }
 .ai-login   { background: var(--blue-bg);   color: var(--blue); }
 .ai-create  { background: var(--green-bg);  color: var(--green); }
 .ai-edit    { background: var(--amber-bg);  color: var(--amber); }
@@ -289,9 +289,9 @@ tbody td { height: 44px; padding: 0 14px; font-size: 0.75rem; color: var(--text)
 .ai-disable { background: var(--violet-bg); color: var(--violet); }
 
 .activity-content { flex: 1; min-width: 0; }
-.activity-text { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; }
+.activity-text { font-size: 0.71rem; color: var(--text-muted); line-height: 1.4; }
 .activity-text strong { font-weight: 600; color: var(--text); }
-.activity-time { font-size: 0.67rem; color: var(--text-light); margin-top: 2px; }
+.activity-time { font-size: 0.60rem; color: var(--text-light); margin-top: 1px; }
 
 /* ── MODAL ── */
 .modal-overlay {
