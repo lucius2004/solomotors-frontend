@@ -297,11 +297,10 @@ function Toast({ message, type }) {
 function NavItem({ active, onClick, icon, label }) {
   return (
     <li>
-      <a className={active ? 'active' : ''} onClick={onClick} style={{ cursor: 'pointer' }}>
+      <a className={active ? 'active' : ''} onClick={onClick} style={{ cursor: 'pointer' }} data-label={label} title={label}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           {icon}
         </svg>
-        <span className="nav-label">{label}</span>
       </a>
     </li>
   )
@@ -474,20 +473,16 @@ export default function AdminDashboard() {
   return (
     <div className="admin-wrapper">
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR - icon only */}
       <aside className="sidebar">
-        <div className="sidebar-logo">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
-            </svg>
-          </div>
-          <div className="logo-text">Solo Motors<span>Admin Panel</span></div>
+        <div className="sidebar-logo" title="Solo Motors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+          </svg>
         </div>
 
         <div className="sidebar-section">
-          <div className="sidebar-section-label">Utama</div>
           <ul className="sidebar-nav">
             <NavItem active={activeNav === 'users'} onClick={() => setActiveNav('users')} label="Manajemen Pengguna"
               icon={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />
@@ -495,7 +490,6 @@ export default function AdminDashboard() {
         </div>
 
         <div className="sidebar-section">
-          <div className="sidebar-section-label">Sistem</div>
           <ul className="sidebar-nav">
             <NavItem active={false} onClick={handleLogout} label="Keluar"
               icon={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>} />
@@ -503,12 +497,8 @@ export default function AdminDashboard() {
         </div>
 
         <div className="sidebar-bottom">
-          <div className="admin-profile">
+          <div className="admin-profile" title={adminUser.nama || 'Admin Sistem'}>
             <div className="avatar">{getInitials(adminUser.nama || 'Admin')}</div>
-            <div className="admin-info">
-              <div className="admin-name">{adminUser.nama || 'Admin Sistem'}</div>
-              <div className="admin-role">Admin</div>
-            </div>
           </div>
         </div>
       </aside>
