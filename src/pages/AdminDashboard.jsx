@@ -524,7 +524,6 @@ export default function AdminDashboard() {
         <header className="topbar">
           <div className="topbar-left">
             <h1>Manajemen Pengguna</h1>
-            <p>Kelola akun pengguna sistem</p>
           </div>
           <div className="topbar-right">
             <button className="btn btn-ghost" onClick={handleExport}>
