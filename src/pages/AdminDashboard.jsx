@@ -551,11 +551,11 @@ export default function AdminDashboard() {
               </div>
 
               {loadingData ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-light)' }}>
+                <div className="loading-state">
                   Memuat data pengguna...
                 </div>
               ) : errorData ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'red' }}>
+                <div className="error-state">
                   {errorData} — <button className="btn btn-ghost" onClick={fetchUsers}>Coba lagi</button>
                 </div>
               ) : (
@@ -630,7 +630,7 @@ export default function AdminDashboard() {
               </div>
                 <div className="activity-list">
                   {activities.length === 0 ? (
-                    <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-light)', fontSize: '14px' }}>
+                    <div className="empty-state">
                       Belum ada aktivitas login.
                     </div>
                   ) : activities.map(a => (
