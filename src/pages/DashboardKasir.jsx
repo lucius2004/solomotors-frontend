@@ -103,23 +103,62 @@ export default function DashboardKasir() {
   function cetakStruk() {
     const el = document.getElementById('struk-print')
     if (!el) return
-    const win = window.open('', '_blank', 'width=400,height=600')
+    const win = window.open('', '_blank', 'width=400,height=700')
     win.document.write(`
-      <html><head><title>Struk</title>
-      <style>
-        body { font-family: 'Courier New', monospace; font-size: 12px; padding: 16px; max-width: 300px; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .line { border-top: 1px dashed #000; margin: 8px 0; }
-        .row { display: flex; justify-content: space-between; }
-        .title { font-size: 16px; font-weight: bold; }
-      </style></head>
-      <body>${el.innerHTML}</body></html>
+      <html>
+      <head>
+        <title>Struk - ${struk.trxId}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            color: #1C1412;
+            padding: 20px;
+            max-width: 300px;
+            margin: 0 auto;
+          }
+          .dk-struk-header { text-align: center; margin-bottom: 12px; }
+          .dk-struk-logo {
+            font-family: 'Sora', sans-serif;
+            font-size: 18px; font-weight: 800;
+            letter-spacing: -0.02em; margin-bottom: 4px;
+          }
+          .dk-struk-alamat { font-size: 11px; color: #78716C; line-height: 1.5; }
+          .dk-struk-divider { border: none; border-top: 1px solid #F3EDE6; margin: 10px 0; }
+          .dk-struk-divider.dashed { border-top-style: dashed; }
+          .dk-struk-meta { display: flex; flex-direction: column; gap: 4px; }
+          .dk-struk-meta-row { display: flex; justify-content: space-between; font-size: 11px; color: #78716C; }
+          .dk-struk-meta-row span:last-child { font-weight: 600; color: #1C1412; text-align: right; }
+          .dk-struk-items { display: flex; flex-direction: column; gap: 8px; }
+          .dk-struk-item-nama { font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+          .dk-struk-item-detail { display: flex; justify-content: space-between; font-size: 11px; color: #78716C; }
+          .dk-struk-item-detail span:last-child { font-weight: 600; color: #1C1412; }
+          .dk-struk-total-wrap { display: flex; flex-direction: column; gap: 5px; }
+          .dk-struk-total-row { display: flex; justify-content: space-between; font-size: 12px; color: #78716C; }
+          .dk-struk-total-row.bold { font-size: 14px; font-weight: 800; color: #1C1412; padding: 4px 0; margin: 2px 0; font-family: 'Sora', sans-serif; }
+          .dk-struk-total-row.kembalian { font-weight: 700; color: #16A34A; }
+          .dk-struk-total-row.lunas { font-weight: 700; color: #16A34A; }
+          .dk-struk-footer { text-align: center; color: #78716C; font-size: 11px; line-height: 1.7; }
+          @media print {
+            body { padding: 0; }
+            @page { margin: 10mm; size: 80mm auto; }
+          }
+        </style>
+      </head>
+      <body>${el.innerHTML}</body>
+      </html>
     `)
     win.document.close()
-    win.focus()
-    win.print()
-    win.close()
+    // Tunggu font selesai load sebelum print
+    win.onload = () => {
+      setTimeout(() => {
+        win.focus()
+        win.print()
+        win.close()
+      }, 800)
+    }
   }
 
   function handleLogout() {
