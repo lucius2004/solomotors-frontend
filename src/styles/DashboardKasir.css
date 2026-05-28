@@ -146,11 +146,11 @@
 
 .dk-produk-card {
   background: var(--dk-white); border: 1px solid var(--dk-border);
-  border-radius: var(--dk-radius); padding: 14px;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 4px;
-  cursor: pointer; transition: all 0.2s; text-align: center;
-  aspect-ratio: 1 / 1;
+  border-radius: var(--dk-radius); padding: 16px 14px;
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 4px;
+  cursor: pointer; transition: all 0.2s; text-align: left;
+  min-height: 110px;
 }
 .dk-produk-card:hover {
   border-color: var(--dk-orange);
