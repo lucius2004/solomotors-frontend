@@ -136,7 +136,7 @@
 .dk-kat-btn.active { background: var(--dk-orange); color: #fff; border-color: var(--dk-orange); }
 
 .dk-produk-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 12px; padding: 16px 20px;
   overflow-y: auto; flex: 1;
   scrollbar-width: thin; scrollbar-color: var(--dk-orange-light) transparent;
@@ -147,8 +147,10 @@
 .dk-produk-card {
   background: var(--dk-white); border: 1px solid var(--dk-border);
   border-radius: var(--dk-radius); padding: 14px;
-  display: flex; flex-direction: column; gap: 4px;
-  cursor: pointer; transition: all 0.2s; text-align: left;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4px;
+  cursor: pointer; transition: all 0.2s; text-align: center;
+  aspect-ratio: 1 / 1;
 }
 .dk-produk-card:hover {
   border-color: var(--dk-orange);
