@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/DashboardKasir.css'
 
@@ -40,6 +40,7 @@ export default function DashboardKasir() {
   const [metode, setMetode]       = useState('tunai') // 'tunai' | 'qris' | 'transfer'
   const [tab, setTab]             = useState('kasir') // 'kasir' | 'riwayat'
   const [sukses, setSukses]       = useState(null)
+  const trxCounter = useRef(1000)
   const [struk, setStruk]         = useState(null)
   const [search, setSearch]       = useState('')
 
@@ -74,7 +75,8 @@ export default function DashboardKasir() {
     if (metode === 'tunai' && bayarNum < total) return
 
     const now = new Date()
-    const trxId = 'TRX-' + String(Math.floor(Math.random() * 9000) + 1000)
+    trxCounter.current += 1
+    const trxId = 'TRX-' + String(trxCounter.current)
 
     const data = {
       total,
@@ -502,13 +504,11 @@ export default function DashboardKasir() {
           </div>
         </div>
       )}
-    </div>
-  )
-}
+
+      {/* ── MODAL STRUK ── */}
       {struk && (
         <div className="dk-modal-overlay" onClick={tutupStruk}>
           <div className="dk-struk-modal" onClick={e => e.stopPropagation()}>
-            {/* Tombol aksi */}
             <div className="dk-struk-actions">
               <button className="dk-struk-act-btn" onClick={cetakStruk}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -525,39 +525,21 @@ export default function DashboardKasir() {
                 Tutup
               </button>
             </div>
-
-            {/* Struk */}
             <div className="dk-struk" id="struk-print">
               <div className="dk-struk-header">
                 <div className="dk-struk-logo">Solo Motors</div>
                 <div className="dk-struk-alamat">Jl. Raya Solo No. 123</div>
                 <div className="dk-struk-alamat">Telp: (0271) 123456</div>
               </div>
-
               <div className="dk-struk-divider"/>
-
               <div className="dk-struk-meta">
-                <div className="dk-struk-meta-row">
-                  <span>No. Transaksi</span><span>{struk.trxId}</span>
-                </div>
-                <div className="dk-struk-meta-row">
-                  <span>Tanggal</span><span>{struk.tanggal}</span>
-                </div>
-                <div className="dk-struk-meta-row">
-                  <span>Waktu</span><span>{struk.waktu}</span>
-                </div>
-                <div className="dk-struk-meta-row">
-                  <span>Kasir</span><span>{struk.kasir}</span>
-                </div>
-                <div className="dk-struk-meta-row">
-                  <span>Metode</span>
-                  <span style={{textTransform:'capitalize'}}>{struk.metode}</span>
-                </div>
+                <div className="dk-struk-meta-row"><span>No. Transaksi</span><span>{struk.trxId}</span></div>
+                <div className="dk-struk-meta-row"><span>Tanggal</span><span>{struk.tanggal}</span></div>
+                <div className="dk-struk-meta-row"><span>Waktu</span><span>{struk.waktu}</span></div>
+                <div className="dk-struk-meta-row"><span>Kasir</span><span>{struk.kasir}</span></div>
+                <div className="dk-struk-meta-row"><span>Metode</span><span style={{textTransform:'capitalize'}}>{struk.metode}</span></div>
               </div>
-
               <div className="dk-struk-divider dashed"/>
-
-              {/* Item */}
               <div className="dk-struk-items">
                 {struk.items.map((item, i) => (
                   <div key={i} className="dk-struk-item">
@@ -569,45 +551,25 @@ export default function DashboardKasir() {
                   </div>
                 ))}
               </div>
-
               <div className="dk-struk-divider dashed"/>
-
-              {/* Total */}
               <div className="dk-struk-total-wrap">
-                <div className="dk-struk-total-row">
-                  <span>Subtotal</span>
-                  <span>{fmt(struk.total)}</span>
-                </div>
-                <div className="dk-struk-total-row bold">
-                  <span>TOTAL</span>
-                  <span>{fmt(struk.total)}</span>
-                </div>
+                <div className="dk-struk-total-row"><span>Subtotal</span><span>{fmt(struk.total)}</span></div>
+                <div className="dk-struk-total-row bold"><span>TOTAL</span><span>{fmt(struk.total)}</span></div>
                 {struk.metode === 'tunai' && (
                   <>
-                    <div className="dk-struk-total-row">
-                      <span>Tunai</span>
-                      <span>{fmt(struk.bayar)}</span>
-                    </div>
-                    <div className="dk-struk-total-row kembalian">
-                      <span>Kembalian</span>
-                      <span>{fmt(struk.kembalian)}</span>
-                    </div>
+                    <div className="dk-struk-total-row"><span>Tunai</span><span>{fmt(struk.bayar)}</span></div>
+                    <div className="dk-struk-total-row kembalian"><span>Kembalian</span><span>{fmt(struk.kembalian)}</span></div>
                   </>
                 )}
                 {struk.metode !== 'tunai' && (
-                  <div className="dk-struk-total-row lunas">
-                    <span>Status</span>
-                    <span>LUNAS ✓</span>
-                  </div>
+                  <div className="dk-struk-total-row lunas"><span>Status</span><span>LUNAS ✓</span></div>
                 )}
               </div>
-
               <div className="dk-struk-divider"/>
               <div className="dk-struk-footer">
                 <p>Terima kasih telah berbelanja</p>
                 <p>di Solo Motors!</p>
-                <p style={{marginTop:'6px', fontSize:'0.68rem', color:'#A8A29E'}}>Barang yang sudah dibeli</p>
-                <p style={{fontSize:'0.68rem', color:'#A8A29E'}}>tidak dapat dikembalikan</p>
+                <p style={{marginTop:'6px', fontSize:'0.68rem', color:'#A8A29E'}}>Barang yang sudah dibeli tidak dapat dikembalikan</p>
               </div>
             </div>
           </div>
