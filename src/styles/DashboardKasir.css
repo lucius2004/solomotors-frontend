@@ -289,6 +289,74 @@
 .dk-btn-bayar:hover { background: var(--dk-orange-dark); box-shadow: 0 6px 20px rgba(249,115,22,0.45); transform: translateY(-1px); }
 .dk-btn-bayar:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* ── METODE PEMBAYARAN ── */
+.dk-metode-wrap { display: flex; flex-direction: column; gap: 6px; }
+.dk-metode-label { font-size: 0.74rem; font-weight: 600; color: var(--dk-text-muted); }
+.dk-metode-btns { display: flex; gap: 6px; }
+.dk-metode-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 8px 6px; border-radius: var(--dk-radius-sm);
+  border: 1.5px solid var(--dk-border); background: var(--dk-off-white);
+  font-size: 0.72rem; font-weight: 600; color: var(--dk-text-muted);
+  cursor: pointer; transition: all 0.18s;
+}
+.dk-metode-btn svg { width: 16px; height: 16px; }
+.dk-metode-btn:hover { border-color: var(--dk-orange-light); color: var(--dk-orange-dark); background: var(--dk-orange-xlight); }
+.dk-metode-btn.active { border-color: var(--dk-orange); background: var(--dk-orange-xlight); color: var(--dk-orange-dark); }
+
+/* ── QRIS ── */
+.dk-qris-wrap {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  background: var(--dk-off-white); border-radius: var(--dk-radius); padding: 14px;
+  border: 1px solid var(--dk-border);
+}
+.dk-qris-box {
+  background: white; border-radius: 10px; padding: 10px;
+  border: 1px solid var(--dk-border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.dk-qris-info { text-align: center; }
+.dk-qris-nominal {
+  font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 800;
+  color: var(--dk-orange-dark); margin-bottom: 4px;
+}
+.dk-qris-info p { font-size: 0.74rem; color: var(--dk-text-muted); margin-bottom: 8px; }
+.dk-qris-apps { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.dk-qris-apps span {
+  font-size: 0.68rem; font-weight: 600; color: var(--dk-orange-dark);
+  background: var(--dk-orange-xlight); border: 1px solid var(--dk-orange-light);
+  padding: 3px 8px; border-radius: 100px;
+}
+
+/* ── TRANSFER ── */
+.dk-transfer-wrap {
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--dk-off-white); border-radius: var(--dk-radius); padding: 14px;
+  border: 1px solid var(--dk-border);
+}
+.dk-transfer-bank {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--dk-white); border-radius: var(--dk-radius-sm); padding: 10px 12px;
+  border: 1px solid var(--dk-border);
+}
+.dk-bank-logo {
+  width: 40px; height: 40px; border-radius: 9px;
+  background: #003d82; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.70rem; font-weight: 800; letter-spacing: 0.02em; flex-shrink: 0;
+}
+.dk-bank-label { font-size: 0.72rem; color: var(--dk-text-muted); }
+.dk-bank-rek { font-family: 'Sora', sans-serif; font-size: 0.96rem; font-weight: 700; color: var(--dk-text); letter-spacing: 0.05em; }
+.dk-bank-nama { font-size: 0.74rem; color: var(--dk-text-muted); }
+.dk-transfer-nominal {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.80rem; color: var(--dk-text-muted);
+  padding: 8px 12px; background: var(--dk-white); border-radius: var(--dk-radius-sm);
+  border: 1px solid var(--dk-border);
+}
+.dk-transfer-nominal strong { font-family: 'Sora', sans-serif; font-size: 0.96rem; color: var(--dk-orange-dark); font-weight: 800; }
+.dk-transfer-note { font-size: 0.72rem; color: var(--dk-text-light); text-align: center; line-height: 1.4; }
+
 /* ── RIWAYAT ── */
 .dk-riwayat { padding: 24px 28px; flex: 1; }
 .dk-riwayat-header {

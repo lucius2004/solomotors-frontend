@@ -37,6 +37,7 @@ export default function DashboardKasir() {
   const [kategori, setKategori]   = useState('Semua')
   const [keranjang, setKeranjang] = useState([])
   const [bayar, setBayar]         = useState('')
+  const [metode, setMetode]       = useState('tunai') // 'tunai' | 'qris' | 'transfer'
   const [tab, setTab]             = useState('kasir') // 'kasir' | 'riwayat'
   const [sukses, setSukses]       = useState(null)
   const [search, setSearch]       = useState('')
@@ -68,10 +69,18 @@ export default function DashboardKasir() {
   }
 
   function prosesBayar() {
-    if (keranjang.length === 0 || bayarNum < total) return
-    setSukses({ total, bayar: bayarNum, kembalian, items: keranjang.length })
+    if (keranjang.length === 0) return
+    if (metode === 'tunai' && bayarNum < total) return
+    setSukses({
+      total,
+      bayar: metode === 'tunai' ? bayarNum : total,
+      kembalian: metode === 'tunai' ? kembalian : 0,
+      items: keranjang.length,
+      metode,
+    })
     setKeranjang([])
     setBayar('')
+    setMetode('tunai')
   }
 
   function tutupSukses() { setSukses(null) }
@@ -228,44 +237,152 @@ export default function DashboardKasir() {
                 <span>{fmt(total)}</span>
               </div>
 
-              {/* Input bayar */}
-              <div className="dk-bayar-wrap">
-                <label>Uang Bayar</label>
-                <div className="dk-bayar-input">
-                  <span>Rp</span>
-                  <input
-                    type="text"
-                    placeholder="0"
-                    value={bayar}
-                    onChange={e => setBayar(e.target.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'))}
-                  />
+              {/* Metode Pembayaran */}
+              <div className="dk-metode-wrap">
+                <label className="dk-metode-label">Metode Pembayaran</label>
+                <div className="dk-metode-btns">
+                  <button
+                    className={`dk-metode-btn ${metode === 'tunai' ? 'active' : ''}`}
+                    onClick={() => { setMetode('tunai'); setBayar('') }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="1" y="4" width="22" height="16" rx="2"/>
+                      <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    Tunai
+                  </button>
+                  <button
+                    className={`dk-metode-btn ${metode === 'qris' ? 'active' : ''}`}
+                    onClick={() => { setMetode('qris'); setBayar('') }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="7" height="7" rx="1"/>
+                      <rect x="14" y="3" width="7" height="7" rx="1"/>
+                      <rect x="3" y="14" width="7" height="7" rx="1"/>
+                      <path d="M14 14h2v2h-2zM18 14h3M14 18h2M18 18h3M21 21v-3"/>
+                    </svg>
+                    QRIS
+                  </button>
+                  <button
+                    className={`dk-metode-btn ${metode === 'transfer' ? 'active' : ''}`}
+                    onClick={() => { setMetode('transfer'); setBayar('') }}
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="17 1 21 5 17 9"/>
+                      <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                      <polyline points="7 23 3 19 7 15"/>
+                      <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                    </svg>
+                    Transfer
+                  </button>
                 </div>
               </div>
 
-              {/* Nominal cepat */}
-              <div className="dk-nominal-cepat">
-                {[50000, 100000, 200000, 500000].map(n => (
-                  <button key={n} onClick={() => setBayar(n.toLocaleString('id-ID'))}>{fmt(n)}</button>
-                ))}
-              </div>
+              {/* Tunai — input uang bayar */}
+              {metode === 'tunai' && (
+                <>
+                  <div className="dk-bayar-wrap">
+                    <label>Uang Bayar</label>
+                    <div className="dk-bayar-input">
+                      <span>Rp</span>
+                      <input
+                        type="text"
+                        placeholder="0"
+                        value={bayar}
+                        onChange={e => setBayar(e.target.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.'))}
+                      />
+                    </div>
+                  </div>
+                  <div className="dk-nominal-cepat">
+                    {[50000, 100000, 200000, 500000].map(n => (
+                      <button key={n} onClick={() => setBayar(n.toLocaleString('id-ID'))}>{fmt(n)}</button>
+                    ))}
+                  </div>
+                  {bayarNum >= total && total > 0 && (
+                    <div className="dk-kembalian">
+                      <span>Kembalian</span>
+                      <span>{fmt(kembalian)}</span>
+                    </div>
+                  )}
+                </>
+              )}
 
-              {bayarNum >= total && total > 0 && (
-                <div className="dk-kembalian">
-                  <span>Kembalian</span>
-                  <span>{fmt(kembalian)}</span>
+              {/* QRIS */}
+              {metode === 'qris' && (
+                <div className="dk-qris-wrap">
+                  <div className="dk-qris-box">
+                    <svg viewBox="0 0 100 100" width="100" height="100">
+                      {/* Simulasi QR code */}
+                      <rect width="100" height="100" fill="white"/>
+                      <rect x="10" y="10" width="30" height="30" fill="none" stroke="#1C1412" strokeWidth="4"/>
+                      <rect x="17" y="17" width="16" height="16" fill="#1C1412"/>
+                      <rect x="60" y="10" width="30" height="30" fill="none" stroke="#1C1412" strokeWidth="4"/>
+                      <rect x="67" y="17" width="16" height="16" fill="#1C1412"/>
+                      <rect x="10" y="60" width="30" height="30" fill="none" stroke="#1C1412" strokeWidth="4"/>
+                      <rect x="17" y="67" width="16" height="16" fill="#1C1412"/>
+                      <rect x="45" y="10" width="6" height="6" fill="#1C1412"/>
+                      <rect x="45" y="20" width="6" height="6" fill="#1C1412"/>
+                      <rect x="10" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="20" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="30" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="45" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="55" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="65" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="75" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="85" y="45" width="6" height="6" fill="#1C1412"/>
+                      <rect x="55" y="55" width="6" height="6" fill="#1C1412"/>
+                      <rect x="65" y="65" width="6" height="6" fill="#1C1412"/>
+                      <rect x="75" y="55" width="6" height="6" fill="#1C1412"/>
+                      <rect x="85" y="65" width="6" height="6" fill="#1C1412"/>
+                      <rect x="55" y="75" width="6" height="6" fill="#1C1412"/>
+                      <rect x="75" y="75" width="6" height="6" fill="#1C1412"/>
+                      <rect x="85" y="85" width="6" height="6" fill="#1C1412"/>
+                    </svg>
+                  </div>
+                  <div className="dk-qris-info">
+                    <div className="dk-qris-nominal">{fmt(total)}</div>
+                    <p>Scan QR di atas menggunakan aplikasi pembayaran</p>
+                    <div className="dk-qris-apps">
+                      <span>GoPay</span><span>OVO</span><span>Dana</span><span>ShopeePay</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Transfer */}
+              {metode === 'transfer' && (
+                <div className="dk-transfer-wrap">
+                  <div className="dk-transfer-bank">
+                    <div className="dk-bank-logo">BCA</div>
+                    <div className="dk-bank-info">
+                      <div className="dk-bank-label">Bank BCA</div>
+                      <div className="dk-bank-rek">1234567890</div>
+                      <div className="dk-bank-nama">Solo Motors</div>
+                    </div>
+                  </div>
+                  <div className="dk-transfer-nominal">
+                    <span>Transfer tepat sebesar</span>
+                    <strong>{fmt(total)}</strong>
+                  </div>
+                  <p className="dk-transfer-note">
+                    Konfirmasi transfer kepada kasir setelah pembayaran selesai
+                  </p>
                 </div>
               )}
 
               <button
                 className="dk-btn-bayar"
                 onClick={prosesBayar}
-                disabled={keranjang.length === 0 || bayarNum < total}
+                disabled={
+                  keranjang.length === 0 ||
+                  (metode === 'tunai' && bayarNum < total)
+                }
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="1" y="4" width="22" height="16" rx="2"/>
                   <line x1="1" y1="10" x2="23" y2="10"/>
                 </svg>
-                Proses Pembayaran
+                {metode === 'tunai' ? 'Proses Pembayaran' : metode === 'qris' ? 'Konfirmasi QRIS' : 'Konfirmasi Transfer'}
               </button>
             </div>
           </div>
@@ -322,9 +439,17 @@ export default function DashboardKasir() {
             </div>
             <h2>Pembayaran Berhasil!</h2>
             <div className="dk-modal-detail">
+              <div><span>Metode</span><span style={{textTransform:'capitalize'}}>{sukses.metode}</span></div>
               <div><span>Total</span><span>{fmt(sukses.total)}</span></div>
-              <div><span>Dibayar</span><span>{fmt(sukses.bayar)}</span></div>
-              <div className="highlight"><span>Kembalian</span><span>{fmt(sukses.kembalian)}</span></div>
+              {sukses.metode === 'tunai' && (
+                <>
+                  <div><span>Dibayar</span><span>{fmt(sukses.bayar)}</span></div>
+                  <div className="highlight"><span>Kembalian</span><span>{fmt(sukses.kembalian)}</span></div>
+                </>
+              )}
+              {sukses.metode !== 'tunai' && (
+                <div className="highlight"><span>Status</span><span>Lunas ✓</span></div>
+              )}
             </div>
             <button className="dk-btn-bayar" onClick={tutupSukses}>Transaksi Baru</button>
           </div>
