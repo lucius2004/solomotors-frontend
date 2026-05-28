@@ -136,7 +136,7 @@
 .dk-kat-btn.active { background: var(--dk-orange); color: #fff; border-color: var(--dk-orange); }
 
 .dk-produk-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
   gap: 12px; padding: 16px 20px;
   overflow-y: auto; flex: 1;
   scrollbar-width: thin; scrollbar-color: var(--dk-orange-light) transparent;
