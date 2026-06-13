@@ -1,681 +1,536 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/AdminDashboard.css'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-const AVATAR_COLORS = ['ua-orange', 'ua-blue', 'ua-green', 'ua-deep']
+// ── DATA ──
+const INIT_USERS = [
+  { id: 1, name: 'Agus Setiawan',  role: 'Kasir',     status: 'Online',  avatar: 'AS', lastLogin: 'Hari ini, 08:30' },
+  { id: 2, name: 'Dewi Lestari',   role: 'Warehouse',  status: 'Online',  avatar: 'DL', lastLogin: 'Hari ini, 09:02' },
+  { id: 3, name: 'Budi Santoso',   role: 'Kasir',     status: 'Offline', avatar: 'BS', lastLogin: 'Kemarin, 17:45' },
+  { id: 4, name: 'Sari Wulandari', role: 'Warehouse',  status: 'Offline', avatar: 'SW', lastLogin: 'Kemarin, 16:30' },
+]
 
-// ── Helpers ──────────────────────────────────────────────────
-function getInitials(name = '') {
-  return name.trim().split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase()
-}
-function getAvatarColor(index) {
-  return AVATAR_COLORS[index % AVATAR_COLORS.length]
-}
-function formatDateTime(val) {
-  if (!val) return 'Belum pernah'
-  const d = new Date(val)
-  return d.toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
-}
-function roleLabel(role) {
-  return { admin: 'Admin', kasir: 'Kasir', warehouse: 'Warehouse' }[role] || role
-}
+const INIT_TRX = [
+  { id: '#TRX-99021', item: 'Ban Pirelli Rosso 110/70',    total: 'Rp 850.000',  status: 'Lunas'   },
+  { id: '#TRX-99020', item: 'Oli Shell Advance 1L (x2)',   total: 'Rp 180.000',  status: 'Lunas'   },
+  { id: '#TRX-99019', item: 'Busi NGK Iridium',            total: 'Rp 95.000',   status: 'Pending' },
+  { id: '#TRX-99018', item: 'Kampas Rem Depan Honda',      total: 'Rp 45.000',   status: 'Lunas'   },
+]
 
-// ── Sub-komponen ──────────────────────────────────────────────
-function RoleBadge({ role }) {
-  const map = { Admin: 'badge-owner', Warehouse: 'badge-warehouse', Kasir: 'badge-kasir' }
-  return (
-    <span className={`badge ${map[role] || 'badge-kasir'}`}>
-      <span className="badge-dot" />
-      {role === 'Warehouse' ? 'Warehouse Staff' : role}
-    </span>
-  )
-}
+const INIT_ACTIVITY = [
+  { time: '09:45', staff: 'Agus Setiawan',  act: 'Melakukan transaksi #TRX-99021' },
+  { time: '09:12', staff: 'Dewi Lestari',   act: 'Update stok Busi NGK Iridium IX' },
+  { time: '08:30', staff: 'Agus Setiawan',  act: 'Login Kasir' },
+]
 
-function StatusBadge({ active }) {
-  return (
-    <span className={`status-badge ${active ? 'status-active' : 'status-inactive'}`}>
-      <span className="badge-dot" />
-      {active ? 'Aktif' : 'Nonaktif'}
-    </span>
-  )
+const SPARE_PARTS = [
+  { name: 'Synthorq 10W-40',  stok: '45 Botol',      pct: 82, color: '#006c49' },
+  { name: 'Radial Sport Tire', stok: '4 Set (Kritis)', pct: 12, color: '#ba1a1a' },
+  { name: 'NGK Iridium IX',   stok: '120 Pcs',        pct: 64, color: '#00714d' },
+  { name: 'Gir & Rantai Set', stok: '12 Set',         pct: 38, color: '#7c839b' },
+]
+
+const AVATAR_COLORS = ['#131b2e','#006c49','#ba1a1a','#3f465c','#00714d']
+
+function nowStr() {
+  const d = new Date()
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-function ActivityIcon({ type }) {
-  const map = { login: 'ai-login', create: 'ai-create', edit: 'ai-edit', disable: 'ai-disable', failed: 'ai-delete' }
-  const icons = {
-    login:   <><polyline points="15 3 21 3 21 9"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></>,
-    create:  <><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></>,
-    edit:    <><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>,
-    disable: <><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></>,
-    failed:  <><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></>,
-  }
-  return (
-    <div className={`activity-icon ${map[type] || 'ai-login'}`}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        {icons[type] || icons.login}
-      </svg>
-    </div>
-  )
-}
-
-// ── Password strength helper ──────────────────────────────────
-function getPasswordStrength(val) {
-  if (!val) return null
-  let score = 0
-  if (val.length >= 6) score++
-  if (/[A-Z]/.test(val)) score++
-  if (/[0-9]/.test(val)) score++
-  if (/[^A-Za-z0-9]/.test(val)) score++
-  const levels = [
-    { label: 'Lemah',       barClass: 'filled-weak' },
-    { label: 'Cukup',       barClass: 'filled-fair' },
-    { label: 'Kuat',        barClass: 'filled-good' },
-    { label: 'Sangat Kuat', barClass: 'filled-strong' },
-  ]
-  return { score, ...levels[score - 1] }
-}
-
-// ── Modal Tambah/Edit User ────────────────────────────────────
-function UserModal({ mode, user, onClose, onSave, loading }) {
+// ── MODAL ──
+function UserModal({ mode, user, onClose, onSave }) {
   const [form, setForm] = useState(
     mode === 'edit' && user
-      ? { name: user.name, username: user.username, email: user.email || '', role: roleLabel(user.role), password: '' }
-      : { name: '', username: '', email: '', role: '', password: '' }
+      ? { name: user.name, role: user.role, password: '' }
+      : { name: '', role: 'Kasir', password: '' }
   )
-  const [error, setError] = useState('')
+  const [err, setErr] = useState('')
 
-  function handleChange(e) {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-    setError('')
+  function save() {
+    if (!form.name.trim()) { setErr('Nama wajib diisi'); return }
+    onSave(form); setErr('')
   }
-
-  function handleRolePill(value) {
-    setForm(f => ({ ...f, role: value }))
-    setError('')
-  }
-
-  function handleSave() {
-    if (!form.name.trim()) { setError('Nama wajib diisi'); return }
-    if (!form.username.trim() && mode === 'add') { setError('Username wajib diisi'); return }
-    if (!form.role) { setError('Role wajib dipilih'); return }
-    if (mode === 'add' && (!form.password || form.password.length < 6)) {
-      setError('Password minimal 6 karakter'); return
-    }
-    onSave(form)
-  }
-
-  const pwStrength = getPasswordStrength(form.password)
 
   return (
-    <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-
-        {/* ── Header dengan icon ── */}
-        <div className="modal-header">
-          <div className="modal-header-icon">
-            {mode === 'edit' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-                <line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/>
-              </svg>
-            )}
-          </div>
-          <div className="modal-header-text">
-            <div className="modal-title">{mode === 'edit' ? 'Edit Pengguna' : 'Tambah Pengguna Baru'}</div>
-            <div className="modal-sub">{mode === 'edit' ? 'Perbarui data pengguna' : 'Isi data pengguna dan tetapkan role'}</div>
-          </div>
-          <button className="modal-close" onClick={onClose}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-
-        {/* ── Body ── */}
-        <div className="modal-body">
-
-          {/* Nama + Username */}
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Nama Lengkap <span className="form-required">*</span></label>
-              <div className="input-wrap">
-                <span className="input-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </span>
-                <input name="name" className="form-input has-icon" placeholder="Masukkan nama" value={form.name} onChange={handleChange} />
-              </div>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Username <span className="form-required">*</span></label>
-              <div className="input-wrap">
-                <span className="input-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94"/>
-                  </svg>
-                </span>
-                <input name="username" className="form-input has-icon" placeholder="nama.pengguna" value={form.username} onChange={handleChange} disabled={mode === 'edit'} />
-              </div>
-            </div>
-          </div>
-
-          {/* Email */}
-          <div className="form-group">
-            <label className="form-label">Email <span className="form-required">*</span></label>
-            <div className="input-wrap">
-              <span className="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                  <polyline points="22,6 12,13 2,6"/>
-                </svg>
-              </span>
-              <input name="email" type="email" className="form-input has-icon" placeholder="email@solomotors.id" value={form.email} onChange={handleChange} />
-            </div>
-          </div>
-
-          {/* Role pills */}
-          <div className="form-group">
-            <label className="form-label">Role <span className="form-required">*</span></label>
-            <div className="role-pills">
-              {[
-                { value: 'Kasir', icon: <><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></> },
-                { value: 'Warehouse', icon: <><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></> },
-              ].map(({ value, icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  className={`role-pill${form.role === value ? ' selected' : ''}`}
-                  onClick={() => handleRolePill(value)}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    {icon}
-                  </svg>
-                  {value}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="form-group">
-            <label className="form-label">
-              Password{' '}
-              {mode === 'edit'
-                ? <span className="form-label-hint">(kosongkan jika tidak diubah)</span>
-                : <span className="form-required">*</span>
-              }
-            </label>
-            <div className="input-wrap">
-              <span className="input-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-              </span>
-              <input name="password" type="password" className="form-input has-icon" placeholder="Min. 6 karakter" value={form.password} onChange={handleChange} />
-            </div>
-            {pwStrength && (
-              <div className="pw-strength">
-                <div className="pw-bars">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className={`pw-bar${i <= pwStrength.score ? ` ${pwStrength.barClass}` : ''}`} />
-                  ))}
-                </div>
-                <div className="pw-label">{pwStrength.label}</div>
-              </div>
-            )}
-          </div>
-
-          {error && <div className="form-error">{error}</div>}
-        </div>
-
-        {/* ── Footer ── */}
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose} disabled={loading}>Batal</button>
-          <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
-            {loading ? 'Menyimpan...' : (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-                {mode === 'edit' ? 'Simpan Perubahan' : 'Simpan Pengguna'}
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Confirm Dialog ────────────────────────────────────────────
-function ConfirmDialog({ message, onConfirm, onCancel }) {
-  return (
-    <div className="modal-overlay open" onClick={e => e.target === e.currentTarget && onCancel()}>
-      <div className="modal" style={{ maxWidth: 380 }}>
-        <div className="modal-header">
+    <div className="ad-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="ad-modal">
+        <div className="ad-modal-head">
           <div>
-            <div className="modal-title">Konfirmasi</div>
-            <div className="modal-sub">{message}</div>
+            <div className="ad-modal-title">{mode === 'add' ? 'Tambah Staff Baru' : 'Edit Staff'}</div>
+            <div className="ad-modal-sub">{mode === 'add' ? 'Isi data untuk akun baru' : 'Perbarui data staff'}</div>
           </div>
-          <button className="modal-close" onClick={onCancel}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
+          <button className="ad-icon-btn" onClick={onClose}>✕</button>
         </div>
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onCancel}>Batal</button>
-          <button className="btn btn-danger" onClick={onConfirm}>Ya, Lanjutkan</button>
+
+        {err && <div className="ad-form-error">{err}</div>}
+
+        <div className="ad-form-group">
+          <label className="ad-label">Nama Lengkap</label>
+          <input className="ad-input" value={form.name} placeholder="Nama staff"
+            onChange={e => { setForm(f => ({...f, name: e.target.value})); setErr('') }} />
+        </div>
+        <div className="ad-form-group">
+          <label className="ad-label">Peran</label>
+          <select className="ad-select" value={form.role}
+            onChange={e => setForm(f => ({...f, role: e.target.value}))}>
+            <option value="Kasir">Kasir</option>
+            <option value="Warehouse">Warehouse Staff</option>
+          </select>
+        </div>
+        <div className="ad-form-group">
+          <label className="ad-label">Password {mode === 'edit' && <span style={{fontWeight:400,color:'#76777d'}}>(kosongkan jika tidak diubah)</span>}</label>
+          <input className="ad-input" type="password" placeholder="••••••••"
+            value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} />
+        </div>
+
+        <div className="ad-modal-foot">
+          <button className="ad-btn ad-btn-ghost" onClick={onClose}>Batal</button>
+          <button className="ad-btn ad-btn-primary" onClick={save}>Simpan</button>
         </div>
       </div>
     </div>
   )
 }
 
-// ── Toast ─────────────────────────────────────────────────────
-function Toast({ message, type }) {
+// ── CONFIRM ──
+function Confirm({ msg, onConfirm, onCancel }) {
   return (
-    <div className={`toast toast-${type}`}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-        {type === 'success'
-          ? <polyline points="20 6 9 17 4 12"/>
-          : <><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/><circle cx="12" cy="12" r="10"/></>
-        }
-      </svg>
-      {message}
+    <div className="ad-overlay" onClick={e => e.target === e.currentTarget && onCancel()}>
+      <div className="ad-modal" style={{maxWidth:360}}>
+        <div className="ad-modal-head">
+          <div className="ad-modal-title">Konfirmasi</div>
+          <button className="ad-icon-btn" onClick={onCancel}>✕</button>
+        </div>
+        <p style={{fontSize:'0.86rem',color:'#45464d',margin:'0 0 20px'}}>{msg}</p>
+        <div className="ad-modal-foot">
+          <button className="ad-btn ad-btn-ghost" onClick={onCancel}>Batal</button>
+          <button className="ad-btn ad-btn-danger" onClick={onConfirm}>Ya, Lanjutkan</button>
+        </div>
+      </div>
     </div>
   )
 }
 
-function NavItem({ active, onClick, icon, label }) {
+// ── TOAST ──
+function Toast({ msg, type }) {
   return (
-    <li>
-      <a className={active ? 'active' : ''} onClick={onClick} style={{ cursor: 'pointer' }} data-label={label} title={label}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {icon}
-        </svg>
-      </a>
-    </li>
+    <div className={`ad-toast ad-toast-${type}`}>{msg}</div>
   )
 }
 
-// ── MAIN COMPONENT ────────────────────────────────────────────
+// ── NAV ITEMS ──
+const NAV = [
+  { id: 'dashboard', label: 'Dashboard',        icon: '⊞' },
+  { id: 'staff',     label: 'Staff Management', icon: '👥' },
+]
+
+// ── MAIN ──
 export default function AdminDashboard() {
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
+  const [tab, setTab]         = useState('dashboard')
+  const [users, setUsers]     = useState(INIT_USERS)
+  const [activity, setActivity] = useState(INIT_ACTIVITY)
+  const [modal, setModal]     = useState(null)
+  const [confirm, setConfirm] = useState(null)
+  const [toast, setToast]     = useState(null)
+  const [search, setSearch]   = useState('')
 
-  const [users, setUsers]           = useState([])
-  const [activities, setActivities] = useState([])
-  const [modal, setModal]           = useState(null)
-  const [confirm, setConfirm]       = useState(null)
-  const [toast, setToast]           = useState(null)
-  const [activeNav, setActiveNav]   = useState('users')
-  const [loadingData, setLoadingData] = useState(true)
-  const [savingUser, setSavingUser]   = useState(false)
-  const [errorData, setErrorData]     = useState('')
-
-  const token     = sessionStorage.getItem('token')
-  const adminUser = JSON.parse(sessionStorage.getItem('user') || '{}')
-
-  useEffect(() => {
-    if (!token) navigate('/login/admin')
-  }, [token, navigate])
-
-  const authHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+  function showToast(msg, type = 'success') {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 2600)
   }
 
-  // ── Fetch users ──
-  const fetchUsers = useCallback(async () => {
-    setLoadingData(true)
-    setErrorData('')
-    try {
-      const res  = await fetch(`${API_URL}/users`, { headers: authHeaders })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.message || 'Gagal mengambil data')
-      setUsers(data.data)
-    } catch (err) {
-      setErrorData(err.message)
-    } finally {
-      setLoadingData(false)
-    }
-  }, [token])
-
-  // ── Fetch log aktivitas dari database ──
-  const fetchLogs = useCallback(async () => {
-    try {
-      const res  = await fetch(`${API_URL}/auth/logs`, { headers: authHeaders })
-      const data = await res.json()
-      if (!res.ok) return
-      // Konversi data log ke format aktivitas
-      const mapped = data.data.map(log => ({
-        id:   log.id,
-        type: log.status === 'failed' ? 'failed' : 'login',
-        text: [
-          { bold: true,  val: log.nama_lengkap || log.username },
-          { bold: false, val: log.status === 'failed'
-            ? ` gagal login sebagai ${roleLabel(log.role)}`
-            : ` login sebagai ${roleLabel(log.role)}` },
-        ],
-        time: formatDateTime(log.created_at),
-      }))
-      setActivities(mapped)
-    } catch (_) {}
-  }, [token])
-
-  useEffect(() => {
-    fetchUsers()
-    fetchLogs()
-  }, [fetchUsers, fetchLogs])
-
-  function showToast(message, type = 'success') {
-    setToast({ message, type })
-    setTimeout(() => setToast(null), 2800)
+  function addActivity(text) {
+    setActivity(prev => [{ time: nowStr(), staff: 'Admin', act: text }, ...prev])
   }
 
-  // ── Save user ──
-  async function handleSaveUser(form) {
-    setSavingUser(true)
-    try {
-      const isAdd  = modal.mode === 'add'
-      const url    = isAdd ? `${API_URL}/users` : `${API_URL}/users/${modal.user.id}`
-      const method = isAdd ? 'POST' : 'PUT'
-
-      const res  = await fetch(url, {
-        method,
-        headers: authHeaders,
-        body: JSON.stringify({
-          name:     form.name,
-          username: form.username,
-          email:    form.email,
-          role:     form.role === 'Warehouse Staff' ? 'Warehouse' : form.role,
-          password: form.password,
-        })
-      })
-      const data = await res.json()
-
-      if (!res.ok) {
-        showToast(data.message || 'Gagal menyimpan data.', 'error')
-        return
-      }
-
-      setModal(null)
-      await fetchUsers()
-      await fetchLogs()
-      showToast(data.message)
-
-    } catch {
-      showToast('Tidak dapat terhubung ke server.', 'error')
-    } finally {
-      setSavingUser(false)
+  function handleSave(form) {
+    setModal(null)
+    if (modal.mode === 'add') {
+      const initials = form.name.trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()
+      setUsers(prev => [...prev, {
+        id: Math.random().toString(36).slice(2),
+        name: form.name.trim(), role: form.role,
+        status: 'Offline', avatar: initials,
+        lastLogin: 'Belum pernah',
+      }])
+      addActivity(`Menambahkan staff baru: ${form.name.trim()}`)
+      showToast(`${form.name.trim()} berhasil ditambahkan`)
+    } else {
+      setUsers(prev => prev.map(u => u.id === modal.user.id
+        ? { ...u, name: form.name.trim(), role: form.role } : u))
+      addActivity(`Mengubah data: ${form.name.trim()}`)
+      showToast(`Data ${form.name.trim()} diperbarui`)
     }
   }
 
-  // ── Toggle status ──
-  function handleToggleStatus(user) {
-    const willActivate = user.is_active === 0
-    const action = willActivate ? 'aktifkan' : 'nonaktifkan'
+  function handleToggle(user) {
     setConfirm({
-      message: `${action.charAt(0).toUpperCase() + action.slice(1)} akun ${user.name}?`,
-      onConfirm: async () => {
+      msg: `${user.status === 'Online' ? 'Nonaktifkan' : 'Aktifkan'} akun ${user.name}?`,
+      onConfirm: () => {
         setConfirm(null)
-        try {
-          const res  = await fetch(`${API_URL}/users/${user.id}/status`, {
-            method:  'PATCH',
-            headers: authHeaders,
-            body:    JSON.stringify({ is_active: willActivate ? 1 : 0 })
-          })
-          const data = await res.json()
-          if (!res.ok) { showToast(data.message || 'Gagal mengubah status.', 'error'); return }
-          await fetchUsers()
-          showToast(data.message, willActivate ? 'success' : 'warning')
-        } catch {
-          showToast('Tidak dapat terhubung ke server.', 'error')
-        }
+        setUsers(prev => prev.map(u => u.id === user.id
+          ? { ...u, status: u.status === 'Online' ? 'Offline' : 'Online' } : u))
+        addActivity(`${user.status === 'Online' ? 'Menonaktifkan' : 'Mengaktifkan'} akun ${user.name}`)
+        showToast(`Akun ${user.name} diperbarui`)
       }
     })
   }
 
-  // ── Logout ──
-  async function handleLogout() {
-    try {
-      await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers: authHeaders })
-    } catch (_) {}
-    sessionStorage.clear()
-    navigate('/login/admin')
+  function handleExport() {
+    const rows = [['Nama','Peran','Status','Login Terakhir'],
+      ...users.map(u => [u.name, u.role, u.status, u.lastLogin])]
+    const csv = rows.map(r => r.join(',')).join('\n')
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}))
+    a.download = 'staff-solo-motors.csv'; a.click()
+    showToast('Data diekspor ke CSV')
   }
 
-  // ── Export CSV ──
-  function handleExport() {
-    const header = ['Nama', 'Username', 'Email', 'Role', 'Status', 'Login Terakhir']
-    const rows   = users.map(u => [
-      u.name, u.username, u.email || '-',
-      roleLabel(u.role),
-      u.is_active ? 'Aktif' : 'Nonaktif',
-      formatDateTime(u.last_login)
-    ])
-    const csv  = [header, ...rows].map(r => r.join(',')).join('\n')
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url  = URL.createObjectURL(blob)
-    const a    = document.createElement('a')
-    a.href = url; a.download = 'pengguna-solo-motors.csv'; a.click()
-    URL.revokeObjectURL(url)
-    showToast('Data berhasil diekspor ke CSV')
+  function handleLogout() {
+    sessionStorage.clear()
+    navigate('/')
   }
+
+  const onlineCount = users.filter(u => u.status === 'Online').length
 
   return (
-    <div className="admin-wrapper">
+    <div className="ad-wrapper">
 
-      {/* SIDEBAR - icon only */}
-      <aside className="sidebar">
-        <div className="sidebar-logo" title="Solo Motors">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
-          </svg>
+      {/* ── SIDEBAR ── */}
+      <aside className="ad-sidebar">
+        <div className="ad-sidebar-brand">
+          <h1 className="ad-brand-name">Solo Motors</h1>
+          <p className="ad-brand-sub">Admin Panel</p>
         </div>
 
-        {/* Utama */}
-        <div className="sidebar-section">
-          <ul className="sidebar-nav">
-            <NavItem active={false} onClick={() => {}} label="Dashboard"
-              icon={<><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>} />
-            <NavItem active={activeNav === 'users'} onClick={() => setActiveNav('users')} label="Manajemen Pengguna"
-              icon={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />
-          </ul>
-        </div>
-
-        {/* Operasional */}
-        <div className="sidebar-section" style={{ marginTop: 4 }}>
-          <ul className="sidebar-nav">
-            <NavItem active={false} onClick={() => {}} label="Inventaris"
-              icon={<><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></>} />
-            <NavItem active={false} onClick={() => {}} label="Transaksi"
-              icon={<><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>} />
-            <NavItem active={false} onClick={() => {}} label="Laporan"
-              icon={<><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></>} />
-          </ul>
-        </div>
-
-        {/* Sistem */}
-        <div className="sidebar-section" style={{ marginTop: 4 }}>
-          <ul className="sidebar-nav">
-            <NavItem active={false} onClick={handleLogout} label="Keluar"
-              icon={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></>} />
-          </ul>
-        </div>
-
-        <div className="sidebar-bottom">
-          <div className="admin-profile" title={adminUser.nama || 'Admin Sistem'}>
-            <div className="avatar">{getInitials(adminUser.nama || 'Admin')}</div>
-          </div>
-        </div>
+        <nav className="ad-nav">
+          {NAV.map(n => (
+            <button key={n.id}
+              className={`ad-nav-item ${tab === n.id ? 'active' : ''}`}
+              onClick={() => setTab(n.id)}>
+              <span className="ad-nav-icon">{n.icon}</span>
+              <span>{n.label}</span>
+            </button>
+          ))}
+        </nav>
       </aside>
 
-      {/* MAIN */}
-      <div className="main">
-        <header className="topbar">
-          <div className="topbar-left">
-            <h1>Manajemen Pengguna</h1>
+      {/* ── MAIN ── */}
+      <div className="ad-main">
+
+        {/* TOPBAR */}
+        <header className="ad-topbar">
+          <div className="ad-search-wrap">
+            <svg className="ad-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input className="ad-search" placeholder="Cari transaksi atau spare part..."
+              value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div className="topbar-right">
-            <button className="btn btn-ghost" onClick={handleExport}>
+          <div className="ad-topbar-right">
+            <div className="ad-avatar-sm">A</div>
+            <button className="ad-logout-btn" onClick={handleLogout}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Export
-            </button>
-            <button className="btn btn-primary" onClick={() => setModal({ mode: 'add' })}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-              </svg>
-              Tambah Pengguna
+              Keluar
             </button>
           </div>
         </header>
 
-        <div className="content">
-          <div className="two-col">
+        {/* ══ DASHBOARD TAB ══ */}
+        {tab === 'dashboard' && (
+          <main className="ad-content">
 
-            {/* USER TABLE */}
-            <div className="panel">
-              <div className="panel-header centered">
-                <div>
-                  <div className="panel-title">Daftar Pengguna</div>
-                  <div className="panel-subtitle">Pengguna terdaftar dalam sistem</div>
-                </div>
+            {/* Welcome */}
+            <div className="ad-welcome-row">
+              <div>
+                <h2 className="ad-welcome-title">Ringkasan Operasional</h2>
+                <p className="ad-welcome-sub">Halo Manager, berikut adalah performa bisnis hari ini.</p>
               </div>
+              <button className="ad-btn ad-btn-outline" onClick={handleExport}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Export Laporan
+              </button>
+            </div>
 
-              {loadingData ? (
-                <div className="loading-state">
-                  Memuat data pengguna...
+            {/* Summary Cards */}
+            <div className="ad-summary-grid">
+              <div className="ad-summary-card">
+                <div className="ad-summary-top">
+                  <span className="ad-summary-label">Total Pendapatan</span>
+                  <span className="ad-badge ad-badge-green">+12.5%</span>
                 </div>
-              ) : errorData ? (
-                <div className="error-state">
-                  {errorData} — <button className="btn btn-ghost" onClick={fetchUsers}>Coba lagi</button>
+                <div className="ad-summary-val">Rp 42.850.000</div>
+                <div className="ad-summary-note">Bulan ini vs bulan lalu</div>
+              </div>
+              <div className="ad-summary-card">
+                <div className="ad-summary-top">
+                  <span className="ad-summary-label">Volume Transaksi</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#76777d" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                 </div>
-              ) : (
-                <div className="table-wrap">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Pengguna</th>
-                        <th>Role</th>
-                        <th>Status</th>
-                        <th>Login Terakhir</th>
-                        <th>Logout Terakhir</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((u, i) => (
-                        <tr key={u.id}>
-                          <td>
-                            <div className="user-cell">
-                              <div className={`user-avatar ${getAvatarColor(i)}`}>{getInitials(u.name)}</div>
-                              <div>
-                                <div className="user-name">{u.name}</div>
-                                <div className="user-email">{u.email || u.username}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td><RoleBadge role={roleLabel(u.role)} /></td>
-                          <td><StatusBadge active={u.is_active === 1} /></td>
-                          <td><span className="last-login">{formatDateTime(u.last_login)}</span></td>
-                          <td><span className="last-login">{formatDateTime(u.last_logout)}</span></td>
-                          <td>
-                            <div className="action-group">
-                              <button className="icon-btn edit" title="Edit" onClick={() => setModal({ mode: 'edit', user: u })}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                                </svg>
-                              </button>
-                              <button
-                                className={`icon-btn ${u.is_active ? 'toggle-inactive' : 'toggle-active'}`}
-                                title={u.is_active ? 'Nonaktifkan' : 'Aktifkan'}
-                                onClick={() => handleToggleStatus(u)}
-                              >
-                                {u.is_active
-                                  ? <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                                  : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                                }
-                              </button>
-                            </div>
-                          </td>
+                <div className="ad-summary-val">156</div>
+                <div className="ad-summary-note">hari ini</div>
+              </div>
+              <div className="ad-summary-card">
+                <div className="ad-summary-top">
+                  <span className="ad-summary-label">Stok Kritis</span>
+                  <span className="ad-badge ad-badge-red">12 Item</span>
+                </div>
+                <div className="ad-summary-val" style={{color:'#ba1a1a'}}>7 Item</div>
+                <div className="ad-summary-note" style={{textDecoration:'underline',cursor:'pointer'}}>Lihat Inventaris</div>
+              </div>
+              <div className="ad-summary-card">
+                <div className="ad-summary-top">
+                  <span className="ad-summary-label">Staff Aktif</span>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#76777d" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                </div>
+                <div className="ad-summary-val">{onlineCount} / {users.length}</div>
+                <div className="ad-summary-note">Shift pagi & sore</div>
+              </div>
+            </div>
+
+            {/* Content Grid */}
+            <div className="ad-content-grid">
+              <div className="ad-col-left">
+
+                {/* Recent Transactions */}
+                <div className="ad-panel">
+                  <div className="ad-panel-head">
+                    <h4 className="ad-panel-title">Transaksi Terakhir</h4>
+                    <a className="ad-link">Lihat Semua</a>
+                  </div>
+                  <div className="ad-table-wrap">
+                    <table className="ad-table">
+                      <thead>
+                        <tr>
+                          <th>ID Transaksi</th>
+                          <th>Item</th>
+                          <th>Total</th>
+                          <th>Status</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {INIT_TRX.map((t, i) => (
+                          <tr key={i} className="zebra">
+                            <td className="ad-mono">{t.id}</td>
+                            <td className="ad-muted">{t.item}</td>
+                            <td className="ad-bold">{t.total}</td>
+                            <td>
+                              <span className={`ad-status-badge ${t.status === 'Lunas' ? 'ad-status-lunas' : 'ad-status-pending'}`}>
+                                {t.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              )}
 
-              <div className="pagination">
-                <span>Menampilkan {users.length} pengguna</span>
-              </div>
-            </div>
-
-            {/* ACTIVITY LOG */}
-            <div className="panel">
-              <div className="panel-header">
-                <div>
-                  <div className="panel-title">Log Aktivitas</div>
-                  <div className="panel-subtitle">Aktivitas terbaru pengguna</div>
-                </div>
-                <button className="btn btn-ghost" style={{ fontSize: '12px', padding: '6px 12px' }} onClick={fetchLogs}>Refresh</button>
-              </div>
-                <div className="activity-list">
-                  {activities.length === 0 ? (
-                    <div className="empty-state">
-                      Belum ada aktivitas login.
-                    </div>
-                  ) : activities.map(a => (
-                    <div className="activity-item" key={a.id}>
-                      <ActivityIcon type={a.type} />
-                      <div className="activity-content">
-                        <div className="activity-text">
-                          {a.text.map((seg, i) =>
-                            seg.bold ? <strong key={i}>{seg.val}</strong> : <span key={i}>{seg.val}</span>
-                          )}
+                {/* Staff Status */}
+                <div className="ad-panel">
+                  <div className="ad-panel-head">
+                    <h4 className="ad-panel-title">Status Staff</h4>
+                  </div>
+                  <div className="ad-staff-grid">
+                    {users.map(u => (
+                      <div key={u.id} className="ad-staff-item">
+                        <div className="ad-avatar" style={{background: AVATAR_COLORS[u.id % AVATAR_COLORS.length] || '#131b2e'}}>
+                          {u.avatar}
                         </div>
-                        <div className="activity-time">{a.time}</div>
+                        <div className="ad-staff-info">
+                          <div className="ad-staff-name">{u.name}</div>
+                          <div className="ad-staff-role">{u.role}</div>
+                        </div>
+                        <div className="ad-staff-status">
+                          <div className={`ad-status-dot ${u.status === 'Online' ? 'dot-online' : 'dot-offline'}`} />
+                          <span className={u.status === 'Online' ? 'ad-online-txt' : 'ad-offline-txt'}>
+                            {u.status}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
+
+                {/* Activity Log */}
+                <div className="ad-panel">
+                  <div className="ad-panel-head">
+                    <h4 className="ad-panel-title">Log Aktivitas Staf</h4>
+                  </div>
+                  <div className="ad-table-wrap">
+                    <table className="ad-table">
+                      <thead>
+                        <tr>
+                          <th>Waktu</th>
+                          <th>Staf</th>
+                          <th>Aktivitas</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activity.map((a, i) => (
+                          <tr key={i} className="zebra">
+                            <td className="ad-mono">{a.time}</td>
+                            <td className="ad-bold">{a.staff}</td>
+                            <td className="ad-muted">{a.act}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Spare Parts */}
+              <div className="ad-col-right">
+                <div className="ad-panel">
+                  <div className="ad-panel-head">
+                    <h4 className="ad-panel-title">Top 5 Spare Part Terlaris</h4>
+                  </div>
+                  <div className="ad-parts-list">
+                    {SPARE_PARTS.map((p, i) => (
+                      <div key={i} className="ad-part-item">
+                        <div className="ad-part-icon">
+                          <svg viewBox="0 0 24 24" fill="none" stroke={p.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          </svg>
+                        </div>
+                        <div className="ad-part-info">
+                          <div className="ad-part-row">
+                            <span className="ad-part-name">{p.name}</span>
+                            <span className="ad-part-pct" style={{color: p.color}}>{p.pct}%</span>
+                          </div>
+                          <div className="ad-part-stok">{p.stok}</div>
+                          <div className="ad-part-bar-bg">
+                            <div className="ad-part-bar-fill" style={{width:`${p.pct}%`, background: p.color}} />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </main>
+        )}
+
+        {/* ══ STAFF MANAGEMENT TAB ══ */}
+        {tab === 'staff' && (
+          <main className="ad-content">
+            <div className="ad-welcome-row">
+              <div>
+                <h2 className="ad-welcome-title">Staff Management</h2>
+                <p className="ad-welcome-sub">Kelola akun dan akses staff sistem.</p>
+              </div>
+              <div style={{display:'flex',gap:10}}>
+                <button className="ad-btn ad-btn-outline" onClick={handleExport}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Export
+                </button>
+                <button className="ad-btn ad-btn-primary" onClick={() => setModal({mode:'add'})}>
+                  + Tambah Staff
+                </button>
+              </div>
             </div>
 
-          </div>
-        </div>
+            <div className="ad-panel">
+              <div className="ad-panel-head">
+                <h4 className="ad-panel-title">Daftar Staff</h4>
+                <span className="ad-muted" style={{fontSize:'0.76rem'}}>{users.length} pengguna</span>
+              </div>
+              <div className="ad-table-wrap">
+                <table className="ad-table">
+                  <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Peran</th>
+                      <th>Status</th>
+                      <th>Login Terakhir</th>
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map(u => (
+                      <tr key={u.id} className="zebra">
+                        <td>
+                          <div style={{display:'flex',alignItems:'center',gap:10}}>
+                            <div className="ad-avatar" style={{width:32,height:32,fontSize:'0.68rem',background: AVATAR_COLORS[u.id % AVATAR_COLORS.length] || '#131b2e'}}>
+                              {u.avatar}
+                            </div>
+                            <span className="ad-bold">{u.name}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`ad-role-badge ${u.role === 'Kasir' ? 'role-kasir' : 'role-wh'}`}>
+                            {u.role === 'Warehouse' ? 'Warehouse Staff' : u.role}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{display:'flex',alignItems:'center',gap:6}}>
+                            <div className={`ad-status-dot ${u.status === 'Online' ? 'dot-online' : 'dot-offline'}`} />
+                            <span className={u.status === 'Online' ? 'ad-online-txt' : 'ad-offline-txt'} style={{fontSize:'0.76rem',fontWeight:700}}>
+                              {u.status}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="ad-muted" style={{fontSize:'0.76rem'}}>{u.lastLogin}</td>
+                        <td>
+                          <div style={{display:'flex',gap:6}}>
+                            <button className="ad-action-btn edit" onClick={() => setModal({mode:'edit',user:u})}>Edit</button>
+                            <button className="ad-action-btn toggle" onClick={() => handleToggle(u)}>
+                              {u.status === 'Online' ? 'Nonaktifkan' : 'Aktifkan'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Activity Log */}
+            <div className="ad-panel">
+              <div className="ad-panel-head">
+                <h4 className="ad-panel-title">Log Aktivitas</h4>
+              </div>
+              <div className="ad-table-wrap">
+                <table className="ad-table">
+                  <thead>
+                    <tr><th>Waktu</th><th>Staf</th><th>Aktivitas</th></tr>
+                  </thead>
+                  <tbody>
+                    {activity.map((a, i) => (
+                      <tr key={i} className="zebra">
+                        <td className="ad-mono">{a.time}</td>
+                        <td className="ad-bold">{a.staff}</td>
+                        <td className="ad-muted">{a.act}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </main>
+        )}
       </div>
 
       {/* MODALS */}
-      {modal && (
-        <UserModal
-          mode={modal.mode}
-          user={modal.user}
-          onClose={() => setModal(null)}
-          onSave={handleSaveUser}
-          loading={savingUser}
-        />
-      )}
-      {confirm && (
-        <ConfirmDialog
-          message={confirm.message}
-          onConfirm={confirm.onConfirm}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
-      {toast && <Toast message={toast.message} type={toast.type || 'success'} />}
+      {modal   && <UserModal mode={modal.mode} user={modal.user} onClose={() => setModal(null)} onSave={handleSave} />}
+      {confirm && <Confirm msg={confirm.msg} onConfirm={confirm.onConfirm} onCancel={() => setConfirm(null)} />}
+      {toast   && <Toast msg={toast.msg} type={toast.type} />}
     </div>
   )
 }
